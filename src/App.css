@@ -1,0 +1,38 @@
+/* Additional app styles */
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* No underline on links by default */
+a {
+  text-decoration: none;
+}
+
+/* Ant carousel fade fix */
+.ant-carousel .slick-slide {
+  pointer-events: auto;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animation delay utilities */
+.delay-1000 {
+  animation-delay: 1s;
+}
+.delay-2000 {
+  animation-delay: 2s;
+}
