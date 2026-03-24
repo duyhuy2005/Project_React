@@ -11,11 +11,12 @@ import {
   CrownOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { products } from "../data/products";
+import { useProducts } from "../context/ProductContext";
 import ProductCard from "../components/product/ProductCard";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { products } = useProducts();
   const featuredProducts = products.filter((p) => p.isBestSeller || p.isNew).slice(0, 4);
   const newProducts = products.filter((p) => p.isNew).slice(0, 4);
 
