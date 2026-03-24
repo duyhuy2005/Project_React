@@ -19,10 +19,12 @@ import {
   BarsOutlined,
 } from "@ant-design/icons";
 import { Link, useSearchParams } from "react-router-dom";
-import { products, categories, brands, formatPrice } from "../data/products";
+import { categories, brands, formatPrice } from "../data/products";
+import { useProducts } from "../context/ProductContext";
 import ProductCard from "../components/product/ProductCard";
 
 const ProductsPage: React.FC = () => {
+  const { products } = useProducts();
   const [searchParams] = useSearchParams();
   const initialCat = searchParams.get("cat") || "all";
   const initialSearch = searchParams.get("search") || "";
