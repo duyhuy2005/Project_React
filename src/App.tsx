@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
+import { AuthProvider } from "./context/AuthContext";
+import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -9,6 +11,7 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
+import CustomerAuthPage from "./pages/CustomerAuthPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminDashboard from "./pages/admin/DashboardPage";
 import AdminProducts from "./pages/admin/ProductManagementPage";
@@ -30,33 +33,38 @@ function App() {
         },
       }}
     >
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/product/:id" element={<ProductDetailPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/about" element={<AboutPage />} />
-            </Route>
+      <AuthProvider>
+        <ProductProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/about" element={<AboutPage />} />
+              </Route>
 
-            {/* Admin Login */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
+              {/* Auth Pages */}
+              <Route path="/login" element={<CustomerAuthPage />} />
+              <Route path="/admin/login" element={<AdminLoginPage />} />
 
-            {/* Admin Routes */}
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/products" element={<AdminProducts />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/customers" element={<AdminCustomers />} />
-              <Route path="/admin/statistics" element={<AdminStatistics />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
+              {/* Admin Routes */}
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/customers" element={<AdminCustomers />} />
+                <Route path="/admin/statistics" element={<AdminStatistics />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+        </ProductProvider>
+      </AuthProvider>
     </ConfigProvider>
   );
 }
