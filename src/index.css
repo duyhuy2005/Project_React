@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ===== Custom Theme ===== */
 @theme {
@@ -16,9 +17,6 @@
   --color-text-secondary: #6b7280;
   --color-text-light: #f5f0e8;
 }
-
-/* ===== Google Fonts ===== */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ===== Base Styles ===== */
 * {
