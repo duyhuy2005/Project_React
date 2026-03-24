@@ -3,11 +3,19 @@ import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import { CartProvider } from "./context/CartContext";
 import MainLayout from "./components/layout/MainLayout";
+import AdminLayout from "./components/layout/AdminLayout";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminDashboard from "./pages/admin/DashboardPage";
+import AdminProducts from "./pages/admin/ProductManagementPage";
+import AdminOrders from "./pages/admin/OrderManagementPage";
+import AdminCustomers from "./pages/admin/CustomerManagementPage";
+import AdminStatistics from "./pages/admin/StatisticsPage";
+import AdminSettings from "./pages/admin/SettingsPage";
 import "./App.css";
 
 function App() {
@@ -25,12 +33,26 @@ function App() {
       <CartProvider>
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/about" element={<AboutPage />} />
+            </Route>
+
+            {/* Admin Login */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+
+            {/* Admin Routes */}
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/customers" element={<AdminCustomers />} />
+              <Route path="/admin/statistics" element={<AdminStatistics />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
           </Routes>
         </BrowserRouter>
@@ -40,3 +62,4 @@ function App() {
 }
 
 export default App;
+
