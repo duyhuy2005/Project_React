@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { Form, Input, Button, Checkbox, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const onFinish = (values: { username: string; password: string; remember: boolean }) => {
     setLoading(true);
-    // Simulate login
     setTimeout(() => {
       if (values.username === "admin" && values.password === "admin") {
-        message.success("Đăng nhập thành công!");
+        login({
+          id: 1,
+          name: "Admin",
+          email: "admin@chronos.vn",
+          role: "admin",
+        });
         localStorage.setItem("admin_logged_in", "true");
+        message.success("Đăng nhập Admin thành công!");
         navigate("/admin");
       } else {
         message.error("Tài khoản hoặc mật khẩu không đúng!");
@@ -176,7 +183,7 @@ const AdminLoginPage = () => {
                 boxShadow: "0 4px 20px rgba(201, 169, 110, 0.35)",
               }}
             >
-              Đăng nhập
+              Đăng nhập Admin
             </Button>
           </Form.Item>
         </Form>
@@ -192,8 +199,14 @@ const AdminLoginPage = () => {
           }}
         >
           <p style={{ color: "rgba(255, 255, 255, 0.35)", fontSize: 12, margin: 0 }}>
-            Tài khoản demo: <span style={{ color: "#c9a96e" }}>admin</span> / <span style={{ color: "#c9a96e" }}>admin</span>
+            Demo: <span style={{ color: "#c9a96e" }}>admin</span> / <span style={{ color: "#c9a96e" }}>admin</span>
           </p>
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 20 }}>
+          <Link to="/login" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+            ← Đăng nhập khách hàng
+          </Link>
         </div>
       </div>
     </div>
