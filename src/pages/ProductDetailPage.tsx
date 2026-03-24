@@ -21,13 +21,15 @@ import {
   SwapOutlined,
 } from "@ant-design/icons";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { products, formatPrice } from "../data/products";
+import { formatPrice } from "../data/products";
+import { useProducts } from "../context/ProductContext";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/product/ProductCard";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { products } = useProducts();
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
 
