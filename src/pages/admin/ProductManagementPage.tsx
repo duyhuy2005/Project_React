@@ -20,12 +20,13 @@ import {
   DeleteOutlined,
   StarFilled,
 } from "@ant-design/icons";
-import { products as initialProducts, formatPrice, categories, brands } from "../../data/products";
+import { formatPrice, categories, brands } from "../../data/products";
 import type { Product } from "../../data/products";
+import { useProducts } from "../../context/ProductContext";
 import "./AdminStyles.css";
 
 const ProductManagementPage = () => {
-  const [productList, setProductList] = useState<Product[]>(initialProducts);
+  const { products: productList, addProduct, updateProduct, deleteProduct } = useProducts();
   const [searchText, setSearchText] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterBrand, setFilterBrand] = useState<string>("all");
@@ -69,7 +70,7 @@ const ProductManagementPage = () => {
   };
 
   const handleDelete = (id: number) => {
-    setProductList((prev) => prev.filter((p) => p.id !== id));
+    deleteProduct(id);
     message.success("Đã xóa sản phẩm thành công!");
   };
 
@@ -97,12 +98,10 @@ const ProductManagementPage = () => {
       };
 
       if (editingProduct) {
-        setProductList((prev) =>
-          prev.map((p) => (p.id === editingProduct.id ? productData : p))
-        );
+        updateProduct(editingProduct.id, productData);
         message.success("Cập nhật sản phẩm thành công!");
       } else {
-        setProductList((prev) => [...prev, productData]);
+        addProduct(productData);
         message.success("Thêm sản phẩm mới thành công!");
       }
       setIsModalOpen(false);
