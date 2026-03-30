@@ -213,6 +213,7 @@ const CartPage: React.FC = () => {
               type="primary"
               size="large"
               block
+              onClick={() => navigate("/checkout")}
               className="!h-14 !rounded-full !font-bold !text-base !bg-gradient-to-r !from-accent !to-accent-dark !border-none"
             >
               Thanh toán
