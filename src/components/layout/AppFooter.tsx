@@ -17,28 +17,26 @@ const AppFooter: React.FC = () => {
   return (
     <Footer className="!bg-primary text-gray-300 !px-0 !py-0 mt-12">
       {/* Newsletter */}
-      <div className="bg-gradient-to-r from-accent-dark to-accent py-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-white text-xl font-bold m-0">
-              Đăng ký nhận tin
-            </h3>
-            <p className="text-white/80 text-sm m-0 mt-1">
-              Nhận ưu đãi độc quyền và cập nhật bộ sưu tập mới nhất
-            </p>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
+      <div className="bg-gradient-to-r from-accent-dark to-accent py-12">
+        <div className="container mx-auto px-6 sm:px-12 lg:px-20 xl:px-28 text-center max-w-[1600px]">
+          <h3 className="text-white text-2xl font-bold m-0 font-display">
+            Đăng ký nhận tin
+          </h3>
+          <p className="text-white/80 text-sm m-0 mt-2 mb-6">
+            Nhận ưu đãi độc quyền và cập nhật bộ sưu tập mới nhất
+          </p>
+          <div className="flex gap-2 max-w-md mx-auto">
             <Input
               placeholder="Email của bạn..."
               size="large"
-              className="md:w-72 rounded-lg"
+              className="!rounded-full"
               prefix={<MailOutlined className="text-gray-400" />}
             />
             <Button
               type="primary"
               size="large"
               icon={<SendOutlined />}
-              className="!bg-primary hover:!bg-secondary rounded-lg"
+              className="!bg-primary hover:!bg-secondary !rounded-full !px-8"
             >
               Gửi
             </Button>
@@ -47,7 +45,7 @@ const AppFooter: React.FC = () => {
       </div>
 
       {/* Main footer */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 sm:px-12 lg:px-20 xl:px-28 py-12 max-w-[1600px]">
         <Row gutter={[48, 32]}>
           <Col xs={24} md={8}>
             <div className="flex items-center gap-2 mb-4">
@@ -149,7 +147,7 @@ const AppFooter: React.FC = () => {
       <Divider className="!border-white/10 !m-0" />
 
       {/* Bottom bar */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-2">
+      <div className="container mx-auto px-6 sm:px-12 lg:px-20 xl:px-28 py-4 flex flex-col md:flex-row items-center justify-between gap-2 max-w-[1600px]">
         <p className="text-gray-500 text-xs m-0">
           © 2026 CHRONOS. Tất cả quyền được bảo lưu.
         </p>
