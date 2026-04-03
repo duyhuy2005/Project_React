@@ -23,9 +23,9 @@ import {
   RollbackOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useOrders, orderStatusConfig, paymentMethodConfig } from "../context/OrderContext";
-import type { Order, OrderStatus } from "../context/OrderContext";
+import { useAuthStore } from "../stores/authStore";
+import { useOrderStore, orderStatusConfig, paymentMethodConfig } from "../stores/orderStore";
+import type { Order, OrderStatus } from "../stores/orderStore";
 import { formatPrice } from "../data/products";
 
 const statusStepMap: Record<OrderStatus, number> = {
@@ -38,8 +38,8 @@ const statusStepMap: Record<OrderStatus, number> = {
 
 const OrderTrackingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn } = useAuth();
-  const { getOrdersByEmail, cancelOrder } = useOrders();
+  const { user, isLoggedIn } = useAuthStore();
+  const { getOrdersByEmail, cancelOrder } = useOrderStore();
   const [searchOrderId, setSearchOrderId] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -85,7 +85,7 @@ const OrderTrackingPage: React.FC = () => {
   // If not logged in
   if (!isLoggedIn) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-20 text-center">
+      <div className="max-w-4xl mx-auto px-6 sm:px-12 lg:px-20 py-20 text-center">
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
@@ -200,7 +200,7 @@ const OrderTrackingPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-6">
+    <div className="max-w-4xl mx-auto px-6 sm:px-12 lg:px-20 py-6">
       <Breadcrumb
         className="mb-6"
         items={[

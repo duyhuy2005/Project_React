@@ -22,17 +22,17 @@ import {
   FileTextOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { useOrders, paymentMethodConfig } from "../context/OrderContext";
-import type { PaymentMethod } from "../context/OrderContext";
+import { useCartStore } from "../stores/cartStore";
+import { useAuthStore } from "../stores/authStore";
+import { useOrderStore, paymentMethodConfig } from "../stores/orderStore";
+import type { PaymentMethod } from "../stores/orderStore";
 import { formatPrice } from "../data/products";
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { items, totalPrice, clearCart } = useCart();
-  const { user, isLoggedIn } = useAuth();
-  const { placeOrder } = useOrders();
+  const { items, totalPrice, clearCart } = useCartStore();
+  const { user, isLoggedIn } = useAuthStore();
+  const placeOrder = useOrderStore((state) => state.placeOrder);
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
