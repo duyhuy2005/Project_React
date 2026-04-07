@@ -18,9 +18,9 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useOrders, returnStatusConfig, orderStatusConfig } from "../context/OrderContext";
-import type { Order } from "../context/OrderContext";
+import { useAuthStore } from "../stores/authStore";
+import { useOrderStore, returnStatusConfig } from "../stores/orderStore";
+import type { Order } from "../stores/orderStore";
 import { formatPrice } from "../data/products";
 
 const returnReasons = [
@@ -37,8 +37,8 @@ const ReturnRequestPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const preselectedOrderId = searchParams.get("orderId") || "";
 
-  const { user, isLoggedIn } = useAuth();
-  const { getOrdersByEmail, submitReturnRequest, getReturnsByEmail } = useOrders();
+  const { user, isLoggedIn } = useAuthStore();
+  const { getOrdersByEmail, submitReturnRequest, getReturnsByEmail } = useOrderStore();
   const [form] = Form.useForm();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

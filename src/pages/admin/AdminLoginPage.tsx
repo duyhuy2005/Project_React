@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Form, Input, Button, Checkbox, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthStore } from "../../stores/authStore";
 
 const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
 
   const onFinish = (values: { username: string; password: string; remember: boolean }) => {
     setLoading(true);
