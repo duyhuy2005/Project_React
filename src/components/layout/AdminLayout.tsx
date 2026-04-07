@@ -14,6 +14,13 @@ import {
   HomeOutlined,
   BarChartOutlined,
   RollbackOutlined,
+  AppstoreOutlined,
+  InboxOutlined,
+  DollarOutlined,
+  LineChartOutlined,
+  SoundOutlined,
+  TagOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import type { MenuProps } from "antd";
@@ -29,7 +36,13 @@ const breadcrumbMap: Record<string, string> = {
   "/admin/products": "Sản phẩm",
   "/admin/orders": "Đơn hàng",
   "/admin/returns": "Hoàn trả",
-  "/admin/customers": "Khách hàng",
+  "/admin/customers": "Người dùng",
+  "/admin/categories": "Danh mục",
+  "/admin/inventory": "Kho hàng",
+  "/admin/finance": "Tài chính",
+  "/admin/reports": "Báo cáo",
+  "/admin/marketing": "Marketing",
+  "/admin/coupons": "Mã giảm giá",
   "/admin/statistics": "Thống kê",
   "/admin/settings": "Cài đặt",
 };
@@ -58,34 +71,52 @@ const AdminLayout = () => {
       key: "/admin/orders",
       icon: <FileTextOutlined />,
       label: (
-        <Badge count={newOrdersCount} offset={[10, 0]} size="small">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <span>Đơn hàng</span>
-        </Badge>
-      ),
-    },
-    {
-      key: "/admin/returns",
-      icon: <RollbackOutlined />,
-      label: (
-        <Badge count={pendingReturnsCount} offset={[10, 0]} size="small">
-          <span>Hoàn trả</span>
-        </Badge>
+          {newOrdersCount > 0 && (
+            <Badge count={newOrdersCount} style={{ marginLeft: 8 }} />
+          )}
+        </div>
       ),
     },
     {
       key: "/admin/customers",
       icon: <TeamOutlined />,
-      label: "Khách hàng",
+      label: "Người dùng",
     },
-    { type: "divider" },
     {
-      key: "/admin/statistics",
-      icon: <BarChartOutlined />,
-      label: "Thống kê",
+      key: "/admin/categories",
+      icon: <AppstoreOutlined />,
+      label: "Danh mục",
+    },
+    {
+      key: "/admin/inventory",
+      icon: <InboxOutlined />,
+      label: "Kho hàng",
+    },
+    {
+      key: "/admin/finance",
+      icon: <DollarOutlined />,
+      label: "Tài chính",
+    },
+    {
+      key: "/admin/reports",
+      icon: <LineChartOutlined />,
+      label: "Báo cáo",
+    },
+    {
+      key: "/admin/marketing",
+      icon: <SoundOutlined />,
+      label: "Marketing",
+    },
+    {
+      key: "/admin/coupons",
+      icon: <TagOutlined />,
+      label: "Mã giảm giá",
     },
     {
       key: "/admin/settings",
-      icon: <SettingOutlined />,
+      icon: <ToolOutlined />,
       label: "Cài đặt",
     },
   ];
