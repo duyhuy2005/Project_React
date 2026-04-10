@@ -24,6 +24,18 @@
   bottom: 0;
   z-index: 100;
   overflow: auto;
+  height: 100vh;
+}
+
+/* Main content area - add margin to avoid sidebar overlap */
+.admin-layout > .ant-layout {
+  margin-left: 260px !important;
+  transition: margin-left 0.2s ease;
+  min-height: 100vh;
+}
+
+.admin-layout .ant-layout-sider-collapsed + .ant-layout {
+  margin-left: 80px !important;
 }
 
 .admin-logo {
@@ -123,6 +135,8 @@
   top: 0;
   z-index: 99;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  margin-left: 0 !important;
 }
 
 .admin-header-left {
@@ -184,9 +198,16 @@
 
 /* ===== Admin Content ===== */
 .admin-content {
-  padding: 24px;
-  background: var(--admin-bg);
-  min-height: calc(100vh - var(--admin-header-height));
+  padding: 24px !important;
+  background: var(--admin-bg) !important;
+  min-height: calc(100vh - var(--admin-header-height)) !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.admin-page-container {
+  width: 100%;
+  max-width: 100%;
 }
 
 .admin-page-header {
@@ -478,10 +499,16 @@
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  width: 100%;
 }
 
 .admin-table-card .ant-table-wrapper {
   border-radius: 0;
+  overflow-x: auto;
+}
+
+.admin-table-card .ant-table {
+  min-width: 800px;
 }
 
 .admin-table-card .ant-table-thead > tr > th {
@@ -492,6 +519,7 @@
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  white-space: nowrap;
 }
 
 .admin-table-toolbar {
@@ -542,8 +570,28 @@
   text-align: center;
 }
 
+/* Update margin when sidebar is collapsed */
+.admin-layout .ant-layout-sider-collapsed ~ .ant-layout {
+  margin-left: 80px !important;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .admin-layout .ant-layout {
+    margin-left: 0 !important;
+  }
+
+  .admin-layout .ant-layout-sider {
+    position: fixed !important;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed {
+    transform: translateX(0);
+  }
+
   .admin-content {
     padding: 16px;
   }
@@ -558,5 +606,14 @@
 
   .admin-header {
     padding: 0 16px !important;
+  }
+
+  .admin-table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-table-toolbar-left {
+    width: 100%;
   }
 }
