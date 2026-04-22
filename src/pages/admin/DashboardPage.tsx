@@ -1,4 +1,4 @@
-import { Row, Col, Table, Tag, Typography } from "antd";
+import { Row, Col, Table, Tag, Typography, Badge } from "antd";
 import {
   DollarOutlined,
   ShoppingCartOutlined,
@@ -8,26 +8,37 @@ import {
   RiseOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useOrderStore, orderStatusConfig } from "../../stores/orderStore";
+import { useProductStore } from "../../stores/productStore";
 import {
   dashboardStats,
   revenueChartData,
-  orders,
   topSellingProducts,
-  orderStatusConfig,
 } from "../../data/adminData";
 import { formatPrice } from "../../data/products";
-import type { Order } from "../../data/adminData";
+import type { Order } from "../../stores/orderStore";
 import "./AdminStyles.css";
 
 const { Text } = Typography;
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const orders = useOrderStore((state) => state.orders);
+  const products = useProductStore((state) => state.products);
+  
   const maxRevenue = Math.max(...revenueChartData.map((d) => d.revenue));
 
   const recentOrders = [...orders]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
+  
+  // Calculate real stats from orders
+  const totalRevenue = orders
+    .filter(o => o.status === 'completed')
+    .reduce((sum, o) => sum + o.totalAmount, 0);
+  
+  const totalOrders = orders.length;
+  const newOrders = orders.filter(o => o.status === 'new').length;
 
   const orderColumns = [
     {
@@ -74,17 +85,18 @@ const DashboardPage = () => {
   const stats = [
     {
       title: "Doanh thu",
-      value: formatPrice(dashboardStats.totalRevenue),
+      value: formatPrice(totalRevenue),
       growth: dashboardStats.revenueGrowth,
       icon: <DollarOutlined />,
       className: "stat-card-revenue",
     },
     {
       title: "Đơn hàng",
-      value: dashboardStats.totalOrders.toString(),
+      value: totalOrders.toString(),
       growth: dashboardStats.orderGrowth,
       icon: <ShoppingCartOutlined />,
       className: "stat-card-orders",
+      badge: newOrders > 0 ? newOrders : undefined,
     },
     {
       title: "Khách hàng",
@@ -95,7 +107,7 @@ const DashboardPage = () => {
     },
     {
       title: "Sản phẩm",
-      value: dashboardStats.totalProducts.toString(),
+      value: products.length.toString(),
       growth: 0,
       icon: <ShoppingOutlined />,
       className: "stat-card-products",
@@ -114,7 +126,9 @@ const DashboardPage = () => {
         {stats.map((stat, index) => (
           <Col xs={24} sm={12} lg={6} key={index}>
             <div className={`stat-card ${stat.className}`}>
-              <div className="stat-card-icon">{stat.icon}</div>
+              <Badge count={(stat as any).badge} offset={[-10, 10]}>
+                <div className="stat-card-icon">{stat.icon}</div>
+              </Badge>
               <div className="stat-card-value">{stat.value}</div>
               <div className="stat-card-label">{stat.title}</div>
               {stat.growth > 0 && (

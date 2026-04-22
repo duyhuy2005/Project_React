@@ -22,11 +22,11 @@ import {
 } from "@ant-design/icons";
 import { formatPrice, categories, brands } from "../../data/products";
 import type { Product } from "../../data/products";
-import { useProducts } from "../../context/ProductContext";
+import { useProductStore } from "../../stores/productStore";
 import "./AdminStyles.css";
 
 const ProductManagementPage = () => {
-  const { products: productList, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { products: productList, addProduct, updateProduct, deleteProduct } = useProductStore();
   const [searchText, setSearchText] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterBrand, setFilterBrand] = useState<string>("all");
