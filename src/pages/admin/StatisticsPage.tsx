@@ -60,14 +60,14 @@ const StatisticsPage = () => {
   const maxWeekly = Math.max(...revenueChartData.map((d) => d.revenue));
 
   return (
-    <div>
+    <div style={{ width: "100%", display: "block" }}>
       <div className="admin-page-header">
         <h1 className="admin-page-title">Thống kê & Báo cáo</h1>
         <p className="admin-page-subtitle">Phân tích chi tiết hoạt động kinh doanh</p>
       </div>
 
       {/* Summary Row */}
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+      <Row gutter={[20, 20]} style={{ marginBottom: 24, width: "100%" }}>
         <Col xs={24} sm={8}>
           <div className="stat-card stat-card-revenue">
             <div className="stat-card-icon"><DollarOutlined /></div>
@@ -91,7 +91,7 @@ const StatisticsPage = () => {
         </Col>
       </Row>
 
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+      <Row gutter={[20, 20]} style={{ marginBottom: 24, width: "100%" }}>
         {/* Monthly Revenue */}
         <Col xs={24} lg={14}>
           <div className="revenue-chart-card">
@@ -176,7 +176,7 @@ const StatisticsPage = () => {
         </Col>
       </Row>
 
-      <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+      <Row gutter={[20, 20]} style={{ marginBottom: 24, width: "100%" }}>
         {/* Weekly Revenue */}
         <Col xs={24} lg={14}>
           <div className="revenue-chart-card">
@@ -184,7 +184,7 @@ const StatisticsPage = () => {
               <RiseOutlined style={{ marginRight: 8, color: "#c9a96e" }} />
               Doanh thu 7 ngày gần nhất
             </div>
-            <div className="chart-bars">
+            <div className="chart-bars" style={{ height: 220 }}>
               {revenueChartData.map((item, index) => (
                 <div className="chart-bar-wrapper" key={index}>
                   <div className="chart-bar-value">
@@ -263,7 +263,7 @@ const StatisticsPage = () => {
       </Row>
 
       {/* Top Customers */}
-      <Row gutter={[20, 20]}>
+      <Row gutter={[20, 20]} style={{ width: "100%" }}>
         <Col xs={24} lg={12}>
           <div className="top-products-card">
             <div className="revenue-chart-title">
