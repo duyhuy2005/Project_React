@@ -1,4 +1,5 @@
 import api from './api';
+import { pickNumber, pickString, readDataArray, readDataObject, toStringId } from '../utils/normalizeApi';
 
 export interface OrderItem {
   sanPhamId: number;
@@ -43,35 +44,14 @@ export interface CreateOrderRequest {
   ghiChu?: string;
 }
 
-const toStringId = (value: unknown): string => {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  return '';
-};
-
-const toNumberId = (value: unknown): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const numeric = Number(value.replace(/\D/g, ''));
-    return Number.isNaN(numeric) ? 0 : numeric;
-  }
-  return 0;
-};
-
 const normalizeOrderItemDetail = (item: Record<string, unknown>, index: number): OrderItemDetail => ({
-  id: toNumberId(item.id ?? index + 1),
-  sanPhamId: toNumberId(item.sanPhamId ?? item.productId ?? item.product),
-  tenSanPham:
-    (item.tenSanPham as string | undefined) ??
-    ((item.product as Record<string, unknown> | undefined)?.name as string | undefined) ??
-    `Sản phẩm #${index + 1}`,
-  hinhAnhSanPham:
-    (item.hinhAnhSanPham as string | undefined) ??
-    ((item.product as Record<string, unknown> | undefined)?.image as string | undefined),
-  gia: Number((item.gia as number | undefined) ?? (item.price as number | undefined) ?? 0),
-  soLuong: Number((item.soLuong as number | undefined) ?? (item.quantity as number | undefined) ?? 0),
-  tongPhu:
-    Number((item.tongPhu as number | undefined) ?? ((item.price as number | undefined) ?? 0) * ((item.quantity as number | undefined) ?? 0)),
+  id: pickNumber(item, ['id'], index + 1),
+  sanPhamId: pickNumber(item, ['sanPhamId', 'productId']),
+  tenSanPham: pickString(item, ['tenSanPham'], `Sản phẩm #${index + 1}`),
+  hinhAnhSanPham: pickString(item, ['hinhAnhSanPham']),
+  gia: pickNumber(item, ['gia', 'price']),
+  soLuong: pickNumber(item, ['soLuong', 'quantity']),
+  tongPhu: pickNumber(item, ['tongPhu'], pickNumber(item, ['price']) * pickNumber(item, ['quantity'])),
 });
 
 const normalizeOrder = (item: Record<string, unknown>): Order => {
@@ -84,31 +64,30 @@ const normalizeOrder = (item: Record<string, unknown>): Order => {
 
   return {
     id: toStringId(item.id ?? item._id),
-    maDonHang: (item.maDonHang as string | undefined) ?? `ORD-${item.id ?? item._id ?? Date.now()}`,
+    maDonHang: pickString(item, ['maDonHang'], `ORD-${item.id ?? item._id ?? Date.now()}`),
     nguoiDungId: toStringId(item.nguoiDungId ?? item.userId ?? item.user),
-    tenKhachHang: (item.tenKhachHang as string | undefined) ?? (item.customerName as string | undefined) ?? '',
-    emailKhachHang: (item.emailKhachHang as string | undefined) ?? (item.customerEmail as string | undefined) ?? '',
-    soDienThoaiKhachHang: (item.soDienThoaiKhachHang as string | undefined) ?? (item.customerPhone as string | undefined) ?? '',
-    diaChiGiaoHang: (item.diaChiGiaoHang as string | undefined) ?? (item.shippingAddress as string | undefined) ?? (item.address as string | undefined) ?? '',
+    tenKhachHang: pickString(item, ['tenKhachHang', 'customerName']),
+    emailKhachHang: pickString(item, ['emailKhachHang', 'customerEmail']),
+    soDienThoaiKhachHang: pickString(item, ['soDienThoaiKhachHang', 'customerPhone']),
+    diaChiGiaoHang: pickString(item, ['diaChiGiaoHang', 'shippingAddress', 'address']),
     tongTien: total,
-    trangThai: (item.trangThai as string | undefined) ?? (item.status as string | undefined) ?? 'new',
-    phuongThucThanhToan: (item.phuongThucThanhToan as string | undefined) ?? (item.paymentMethod as string | undefined),
-    trangThaiThanhToan: (item.trangThaiThanhToan as string | undefined) ?? 'pending',
-    ghiChu: (item.ghiChu as string | undefined) ?? (item.note as string | undefined),
-    ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
-    ngayCapNhat: (item.ngayCapNhat as string | undefined) ?? (item.updatedAt as string | undefined) ?? new Date().toISOString(),
+    trangThai: pickString(item, ['trangThai', 'status'], 'new'),
+    phuongThucThanhToan: pickString(item, ['phuongThucThanhToan', 'paymentMethod']),
+    trangThaiThanhToan: pickString(item, ['trangThaiThanhToan'], 'pending'),
+    ghiChu: pickString(item, ['ghiChu', 'note']),
+    ngayTao: pickString(item, ['ngayTao', 'createdAt']) || new Date().toISOString(),
+    ngayCapNhat: pickString(item, ['ngayCapNhat', 'updatedAt']) || new Date().toISOString(),
     chiTietDonHangs: details,
   };
 };
 
 const extractOrders = (payload: Record<string, unknown>, key: 'order' | 'orders'): Order[] | Order => {
-  const data = (payload.data as Record<string, unknown> | undefined) ?? {};
   if (key === 'orders') {
-    const orders = (data.orders as Record<string, unknown>[] | undefined) ?? [];
+    const orders = readDataArray<Record<string, unknown>>(payload, 'orders');
     return orders.map(normalizeOrder);
   }
 
-  return normalizeOrder((data.order as Record<string, unknown> | undefined) ?? {});
+  return normalizeOrder(readDataObject<Record<string, unknown>>(payload, 'order'));
 };
 
 const orderService = {
