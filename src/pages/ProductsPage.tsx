@@ -24,6 +24,7 @@ import ProductCard from "../components/product/ProductCard";
 
 const ProductsPage: React.FC = () => {
   const products = useProductStore((state) => state.products);
+  const loading = useProductStore((state) => state.loading);
   const [searchParams] = useSearchParams();
   const initialCat = searchParams.get("cat") || "all";
   const initialSearch = searchParams.get("search") || "";
@@ -34,12 +35,15 @@ const ProductsPage: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 40000000]);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const validCategoryKeys = useMemo(() => new Set(categories.map((item) => item.key)), []);
 
   useEffect(() => {
     if (products.length === 0) {
       void useProductStore.getState().fetchProducts();
     }
   }, [products.length]);
+
+  const selectedCategory = validCategoryKeys.has(category) ? category : "all";
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -53,8 +57,8 @@ const ProductsPage: React.FC = () => {
           p.description.toLowerCase().includes(q)
       );
     }
-    if (category !== "all") {
-      result = result.filter((p) => p.category === category);
+    if (selectedCategory !== "all") {
+      result = result.filter((p) => p.category === selectedCategory);
     }
     if (brand !== "all") {
       result = result.filter((p) => p.brand === brand);
@@ -79,7 +83,7 @@ const ProductsPage: React.FC = () => {
     }
 
     return result;
-  }, [products, search, category, brand, priceRange, sortBy]);
+  }, [products, search, selectedCategory, brand, priceRange, sortBy]);
 
   const clearFilters = () => {
     setSearch("");
@@ -89,7 +93,7 @@ const ProductsPage: React.FC = () => {
     setSortBy("default");
   };
 
-  const activeCat = categories.find((c) => c.key === category);
+  const activeCat = categories.find((c) => c.key === selectedCategory);
 
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #f8f9fa 100%)" }}>
@@ -451,13 +455,13 @@ const ProductsPage: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  {category !== "all" && (
+                  {selectedCategory !== "all" && (
                     <Tag
                       closable
                       onClose={() => setCategory("all")}
                       className="!rounded-full !bg-gradient-to-r !from-accent/10 !to-accent/5 !text-accent !border-accent/30 !text-sm !font-bold !px-4 !py-1"
                     >
-                      {categories.find((c) => c.key === category)?.icon} {categories.find((c) => c.key === category)?.label}
+                      {categories.find((c) => c.key === selectedCategory)?.icon} {categories.find((c) => c.key === selectedCategory)?.label}
                     </Tag>
                   )}
                   {brand !== "all" && (
@@ -505,7 +509,9 @@ const ProductsPage: React.FC = () => {
             </div>
 
             {/* Products */}
-            {filtered.length === 0 ? (
+            {loading && products.length === 0 ? (
+              <div className="text-center py-32 text-gray-500">Đang tải sản phẩm...</div>
+            ) : filtered.length === 0 ? (
               <div className="text-center py-32 premium-card border-2 border-dashed border-gray-200">
                 <div className="w-32 h-32 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                   <span className="text-6xl">🔍</span>
@@ -516,10 +522,10 @@ const ProductsPage: React.FC = () => {
                 <p className="text-gray-500 mb-8 text-base max-w-md mx-auto">
                   Rất tiếc, chúng tôi không tìm thấy sản phẩm phù hợp với bộ lọc của bạn. Hãy thử điều chỉnh lại!
                 </p>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   size="large"
-                  onClick={clearFilters} 
+                  onClick={clearFilters}
                   className="!rounded-full !h-14 !px-10 !text-base !font-bold !bg-gradient-to-r !from-accent !to-accent-dark !border-none !shadow-lg hover:!shadow-xl"
                 >
                   🔄 Xóa bộ lọc
