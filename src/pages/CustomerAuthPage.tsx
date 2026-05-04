@@ -34,6 +34,7 @@ const CustomerAuthPage = () => {
         email: values.email,
         password: values.password,
       });
+      loginForm.resetFields();
       message.success({
         content: "Đăng nhập thành công! Chào mừng bạn đến CHRONOS 🎉",
         duration: 3,
@@ -56,6 +57,7 @@ const CustomerAuthPage = () => {
         phone: values.phone,
         password: values.password,
       });
+      registerForm.resetFields();
       message.success({
         content: "Đăng ký thành công! Chào mừng bạn đến CHRONOS 🎉",
         duration: 3,
