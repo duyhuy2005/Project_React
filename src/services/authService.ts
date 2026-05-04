@@ -1,4 +1,5 @@
 import api from './api';
+import { pickString, readDataObject, toNumberId } from '../utils/normalizeApi';
 
 export interface LoginRequest {
   email: string;
@@ -28,35 +29,26 @@ export interface AuthResponse {
   user?: User;
 }
 
-const toNumberId = (value: unknown): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const numeric = Number(value.replace(/\D/g, ''));
-    return Number.isNaN(numeric) ? 0 : numeric;
-  }
-  return 0;
-};
-
 const normalizeUser = (user?: Record<string, unknown>): User | undefined => {
   if (!user) return undefined;
 
   return {
     id: toNumberId(user.id ?? user._id),
-    ten: (user.ten as string | undefined) ?? (user.name as string | undefined) ?? '',
-    email: (user.email as string | undefined) ?? '',
-    soDienThoai: (user.soDienThoai as string | undefined) ?? (user.phone as string | undefined),
-    vaiTro: (user.vaiTro as string | undefined) ?? (user.role as string | undefined) ?? 'customer',
-    ngayTao: (user.ngayTao as string | undefined) ?? (user.createdAt as string | undefined) ?? new Date().toISOString(),
+    ten: pickString(user, ['ten', 'name']),
+    email: pickString(user, ['email']),
+    soDienThoai: pickString(user, ['soDienThoai', 'phone']),
+    vaiTro: pickString(user, ['vaiTro', 'role'], 'customer'),
+    ngayTao: pickString(user, ['ngayTao', 'createdAt']) || new Date().toISOString(),
   };
 };
 
 const normalizeAuthResponse = (payload: Record<string, unknown>): AuthResponse => {
-  const data = (payload.data as Record<string, unknown> | undefined) ?? payload;
+  const data = readDataObject<Record<string, unknown>>(payload);
   return {
     success: Boolean(payload.success),
     message: (payload.message as string | undefined) ?? '',
-    token: data.token as string | undefined,
-    user: normalizeUser(data.user as Record<string, unknown> | undefined),
+    token: pickString(data, ['token']) || undefined,
+    user: normalizeUser((data.user as Record<string, unknown> | undefined) ?? undefined),
   };
 };
 
