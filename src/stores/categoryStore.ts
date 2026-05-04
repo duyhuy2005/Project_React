@@ -30,6 +30,7 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   error: null,
 
   fetchCategories: async () => {
+    if (get().loading) return;
     set({ loading: true, error: null });
     try {
       const categories = await categoryService.getAll();
