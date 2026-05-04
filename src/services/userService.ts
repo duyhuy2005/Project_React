@@ -1,4 +1,5 @@
 import api from './api';
+import { pickString, readApiArray, readApiObject, toNumberId } from '../utils/normalizeApi';
 
 export interface User {
   id: number | string;
@@ -24,40 +25,43 @@ export interface UserStatistics {
 }
 
 const normalizeUser = (item: Record<string, unknown>): User => ({
-  id: (item.id as number | string | undefined) ?? (item._id as number | string | undefined) ?? '',
-  ten: (item.ten as string | undefined) ?? (item.name as string | undefined) ?? '',
-  email: (item.email as string | undefined) ?? '',
-  soDienThoai: (item.soDienThoai as string | undefined) ?? (item.phone as string | undefined),
-  vaiTro: (item.vaiTro as string | undefined) ?? (item.role as string | undefined) ?? 'customer',
-  ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
+  id: toNumberId(item.id ?? item._id),
+  ten: pickString(item, ['ten', 'name']),
+  email: pickString(item, ['email']),
+  soDienThoai: pickString(item, ['soDienThoai', 'phone']),
+  vaiTro: pickString(item, ['vaiTro', 'role'], 'customer'),
+  ngayTao: pickString(item, ['ngayTao', 'createdAt']) || new Date().toISOString(),
 });
 
 const userService = {
   getAll: async (params?: { role?: string; search?: string }): Promise<User[]> => {
     const response = await api.get('/users', { params });
-    const users = ((response.data.data as Record<string, unknown> | undefined)?.users as Record<string, unknown>[] | undefined) ?? [];
+    const users = readApiArray<Record<string, unknown>>(response.data as Record<string, unknown>);
     return users.map(normalizeUser);
   },
 
   getById: async (id: number): Promise<User> => {
     const response = await api.get(`/users/${id}`);
-    const user = ((response.data.data as Record<string, unknown> | undefined)?.user as Record<string, unknown> | undefined) ?? {};
+    const user = readApiObject<Record<string, unknown>>(response.data as Record<string, unknown>);
     return normalizeUser(user);
   },
 
   getStatistics: async (): Promise<UserStatistics> => {
     const response = await api.get('/users/statistics');
-    return ((response.data.data as Record<string, unknown> | undefined)?.statistics as UserStatistics | undefined) ?? {
-      totalUsers: 0,
-      adminCount: 0,
-      userCount: 0,
-      newUsersThisMonth: 0,
-    };
+    const statistics = readApiObject<UserStatistics>(response.data as Record<string, unknown>);
+    return Object.keys(statistics).length > 0
+      ? statistics
+      : {
+          totalUsers: 0,
+          adminCount: 0,
+          userCount: 0,
+          newUsersThisMonth: 0,
+        };
   },
 
   update: async (id: number, data: UpdateUserRequest): Promise<User> => {
     const response = await api.put(`/users/${id}`, data);
-    const user = ((response.data.data as Record<string, unknown> | undefined)?.user as Record<string, unknown> | undefined) ?? {};
+    const user = readApiObject<Record<string, unknown>>(response.data as Record<string, unknown>);
     return normalizeUser(user);
   },
 
@@ -75,7 +79,7 @@ const userService = {
 
   getUserOrders: async (id: number): Promise<unknown[]> => {
     const response = await api.get(`/users/${id}/orders`);
-    return ((response.data.data as Record<string, unknown> | undefined)?.orders as unknown[] | undefined) ?? [];
+    return readApiArray<unknown>(response.data as Record<string, unknown>);
   },
 };
 
