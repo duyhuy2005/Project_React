@@ -1,4 +1,14 @@
 import api from './api';
+import {
+  normalizeCategorySlug,
+  pickBoolean,
+  pickNumber,
+  pickOptionalNumber,
+  pickString,
+  readDataArray,
+  readDataObject,
+  toNumberId,
+} from '../utils/normalizeApi';
 
 export interface Product {
   id: number;
@@ -62,71 +72,44 @@ export interface UpdateProductRequest {
   dayDeo?: string;
 }
 
-const toNumberId = (value: unknown): number => {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const numeric = Number(value.replace(/\D/g, ''));
-    return Number.isNaN(numeric) ? 0 : numeric;
-  }
-  return 0;
-};
-
-const normalizeCategoryValue = (value: unknown): string => {
-  if (typeof value !== 'string') return '';
-  const trimmed = value.trim();
-  if (!trimmed) return '';
-
-  const normalized = trimmed
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  return normalized || trimmed.toLowerCase();
-};
-
 const normalizeProduct = (item: Record<string, unknown>): Product => ({
   id: toNumberId(item.id ?? item._id),
-  ten: (item.ten as string | undefined) ?? (item.name as string | undefined) ?? '',
-  thuongHieu: (item.thuongHieu as string | undefined) ?? (item.brand as string | undefined) ?? '',
-  gia: Number((item.gia as number | undefined) ?? (item.price as number | undefined) ?? 0),
-  giaGoc: (item.giaGoc as number | undefined) ?? (item.originalPrice as number | undefined),
-  danhMuc: normalizeCategoryValue((item.danhMuc as string | undefined) ?? (item.category as string | undefined)),
-  moTa: (item.moTa as string | undefined) ?? (item.description as string | undefined) ?? '',
-  hinhAnh: (item.hinhAnh as string | undefined) ?? (item.image as string | undefined) ?? '',
-  soLuongTon: Number((item.soLuongTon as number | undefined) ?? (item.stock as number | undefined) ?? 0),
-  danhGia: Number((item.danhGia as number | undefined) ?? (item.rating as number | undefined) ?? 0),
-  soDanhGia: Number((item.soDanhGia as number | undefined) ?? (item.reviews as number | undefined) ?? 0),
-  sanPhamMoi: Boolean((item.sanPhamMoi as boolean | undefined) ?? (item.isNew as boolean | undefined)),
-  banChay: Boolean((item.banChay as boolean | undefined) ?? (item.isBestSeller as boolean | undefined)),
-  boMay: (item.boMay as string | undefined) ?? ((item.specs as Record<string, unknown> | undefined)?.movement as string | undefined),
+  ten: pickString(item, ['ten', 'name']),
+  thuongHieu: pickString(item, ['thuongHieu', 'brand']),
+  gia: pickNumber(item, ['gia', 'price']),
+  giaGoc: pickOptionalNumber(item, ['giaGoc', 'originalPrice']),
+  danhMuc: normalizeCategorySlug(pickString(item, ['danhMuc', 'category', 'rawCategory'])),
+  moTa: pickString(item, ['moTa', 'description']),
+  hinhAnh: pickString(item, ['hinhAnh', 'image']),
+  soLuongTon: pickNumber(item, ['soLuongTon', 'stock']),
+  danhGia: pickNumber(item, ['danhGia', 'rating']),
+  soDanhGia: pickNumber(item, ['soDanhGia', 'reviews']),
+  sanPhamMoi: pickBoolean(item, ['sanPhamMoi', 'isNew']),
+  banChay: pickBoolean(item, ['banChay', 'isBestSeller']),
+  boMay: pickString(item, ['boMay']) || ((item.specs as Record<string, unknown> | undefined)?.movement as string | undefined) || '',
   chatLieuVo:
-    (item.chatLieuVo as string | undefined) ??
-    ((item.specs as Record<string, unknown> | undefined)?.caseMaterial as string | undefined),
+    pickString(item, ['chatLieuVo']) ||
+    ((item.specs as Record<string, unknown> | undefined)?.caseMaterial as string | undefined) ||
+    '',
   kichThuocVo:
-    (item.kichThuocVo as string | undefined) ??
-    ((item.specs as Record<string, unknown> | undefined)?.caseSize as string | undefined),
+    pickString(item, ['kichThuocVo']) ||
+    ((item.specs as Record<string, unknown> | undefined)?.caseSize as string | undefined) ||
+    '',
   chongNuoc:
-    (item.chongNuoc as string | undefined) ??
-    ((item.specs as Record<string, unknown> | undefined)?.waterResistance as string | undefined),
-  matKinh: (item.matKinh as string | undefined) ?? ((item.specs as Record<string, unknown> | undefined)?.crystal as string | undefined),
-  dayDeo: (item.dayDeo as string | undefined) ?? ((item.specs as Record<string, unknown> | undefined)?.strap as string | undefined),
-  ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
-  ngayCapNhat: (item.ngayCapNhat as string | undefined) ?? (item.updatedAt as string | undefined) ?? new Date().toISOString(),
+    pickString(item, ['chongNuoc']) ||
+    ((item.specs as Record<string, unknown> | undefined)?.waterResistance as string | undefined) ||
+    '',
+  matKinh: pickString(item, ['matKinh']) || ((item.specs as Record<string, unknown> | undefined)?.crystal as string | undefined) || '',
+  dayDeo: pickString(item, ['dayDeo']) || ((item.specs as Record<string, unknown> | undefined)?.strap as string | undefined) || '',
+  ngayTao: pickString(item, ['ngayTao', 'createdAt']) || new Date().toISOString(),
+  ngayCapNhat: pickString(item, ['ngayCapNhat', 'updatedAt']) || new Date().toISOString(),
 });
 
-const extractList = <T>(payload: Record<string, unknown>, key: string, mapper: (item: Record<string, unknown>) => T): T[] => {
-  const data = payload.data as Record<string, unknown> | undefined;
-  const raw = (data?.[key] as Record<string, unknown>[] | undefined) ?? [];
-  return raw.map(mapper);
-};
+const extractList = <T>(payload: Record<string, unknown>, key: string, mapper: (item: Record<string, unknown>) => T): T[] =>
+  readDataArray<Record<string, unknown>>(payload, key).map(mapper);
 
-const extractSingle = <T>(payload: Record<string, unknown>, key: string, mapper: (item: Record<string, unknown>) => T): T => {
-  const data = payload.data as Record<string, unknown> | undefined;
-  const raw = (data?.[key] as Record<string, unknown> | undefined) ?? {};
-  return mapper(raw);
-};
+const extractSingle = <T>(payload: Record<string, unknown>, key: string, mapper: (item: Record<string, unknown>) => T): T =>
+  mapper(readDataObject<Record<string, unknown>>(payload, key));
 
 const productService = {
   getAll: async (params?: {
