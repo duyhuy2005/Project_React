@@ -1,4 +1,5 @@
 import api from './api';
+import { pickNumber, pickString, readDataArray, readDataObject, toStringId } from '../utils/normalizeApi';
 
 export interface ReturnOrderInfo {
   maDonHang?: string;
@@ -44,35 +45,29 @@ export interface UpdateReturnStatusRequest {
   ghiChuQuanTri?: string;
 }
 
-const toStringId = (value: unknown): string => {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  return '';
-};
-
 const normalizeReturn = (item: Record<string, unknown>): ReturnRequest => ({
   id: toStringId(item.id ?? item._id),
-  maHoanTra: (item.maHoanTra as string | undefined) ?? `RTN-${item.id ?? item._id ?? Date.now()}`,
+  maHoanTra: pickString(item, ['maHoanTra'], `RTN-${item.id ?? item._id ?? Date.now()}`),
   donHangId: toStringId(item.donHangId ?? item.orderId ?? item.order),
   nguoiDungId: toStringId(item.nguoiDungId ?? item.userId ?? item.user),
-  lyDo: (item.lyDo as string | undefined) ?? (item.reason as string | undefined) ?? '',
-  trangThai: (item.trangThai as string | undefined) ?? (item.status as string | undefined) ?? 'pending',
-  soTienHoanTra: (item.soTienHoanTra as number | undefined) ?? (item.refundAmount as number | undefined),
-  ghiChuQuanTri: (item.ghiChuQuanTri as string | undefined) ?? (item.adminNote as string | undefined) ?? (item.description as string | undefined),
-  ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
-  ngayCapNhat: (item.ngayCapNhat as string | undefined) ?? (item.updatedAt as string | undefined) ?? new Date().toISOString(),
+  lyDo: pickString(item, ['lyDo', 'reason']),
+  trangThai: pickString(item, ['trangThai', 'status'], 'pending'),
+  soTienHoanTra: pickNumber(item, ['soTienHoanTra', 'refundAmount']),
+  ghiChuQuanTri: pickString(item, ['ghiChuQuanTri', 'adminNote', 'description']),
+  ngayTao: pickString(item, ['ngayTao', 'createdAt']) || new Date().toISOString(),
+  ngayCapNhat: pickString(item, ['ngayCapNhat', 'updatedAt']) || new Date().toISOString(),
   donHang: item.donHang as ReturnOrderInfo | undefined,
   nguoiDung: item.nguoiDung as ReturnUserInfo | undefined,
 });
 
 const extractList = (payload: Record<string, unknown>): ReturnRequest[] => {
-  const returns = ((payload.data as Record<string, unknown> | undefined)?.returns as Record<string, unknown>[] | undefined) ?? [];
+  const returns = readDataArray<Record<string, unknown>>(payload, 'returns');
   return returns.map(normalizeReturn);
 };
 
 const extractSingle = (payload: Record<string, unknown>): ReturnRequest => {
-  const data = (payload.data as Record<string, unknown> | undefined) ?? {};
-  const raw = ((data.return as Record<string, unknown> | undefined) ?? (data.request as Record<string, unknown> | undefined) ?? {});
+  const data = readDataObject<Record<string, unknown>>(payload);
+  const raw = (data.return as Record<string, unknown> | undefined) ?? (data.request as Record<string, unknown> | undefined) ?? {};
   return normalizeReturn(raw);
 };
 
