@@ -1,4 +1,5 @@
 import api from './api';
+import { readApiArray, readApiObject } from '../utils/normalizeApi';
 
 export interface DashboardStatistics {
   totalOrders: number;
@@ -78,61 +79,61 @@ const statisticsService = {
   // Lấy thống kê tổng quan (Dashboard)
   getDashboard: async (): Promise<DashboardStatistics> => {
     const response = await api.get('/statistics/dashboard');
-    return response.data.data;
+    return readApiObject<DashboardStatistics>(response.data as Record<string, unknown>);
   },
 
   // Thống kê doanh thu theo tháng
   getMonthlyRevenue: async (year?: number): Promise<MonthlyRevenue[]> => {
     const response = await api.get('/statistics/revenue/monthly', { params: { year } });
-    return response.data.data;
+    return readApiArray<MonthlyRevenue>(response.data as Record<string, unknown>);
   },
 
   // Thống kê sản phẩm bán chạy
   getBestSellers: async (limit: number = 10): Promise<BestSellingProduct[]> => {
     const response = await api.get('/statistics/products/best-sellers', { params: { limit } });
-    return response.data.data;
+    return readApiArray<BestSellingProduct>(response.data as Record<string, unknown>);
   },
 
   // Thống kê theo danh mục
   getCategorySales: async (): Promise<CategorySales[]> => {
     const response = await api.get('/statistics/categories/sales');
-    return response.data.data;
+    return readApiArray<CategorySales>(response.data as Record<string, unknown>);
   },
 
   // Thống kê đơn hàng theo trạng thái
   getOrdersByStatus: async (): Promise<OrdersByStatus[]> => {
     const response = await api.get('/statistics/orders/by-status');
-    return response.data.data;
+    return readApiArray<OrdersByStatus>(response.data as Record<string, unknown>);
   },
 
   // Thống kê người dùng mới theo tháng
   getNewUsers: async (year?: number): Promise<{ month: number; count: number }[]> => {
     const response = await api.get('/statistics/users/new-users', { params: { year } });
-    return response.data.data;
+    return readApiArray<{ month: number; count: number }>(response.data as Record<string, unknown>);
   },
 
   // Thống kê sản phẩm tồn kho
   getInventory: async (): Promise<InventoryStatistics> => {
     const response = await api.get('/statistics/products/inventory');
-    return response.data.data;
+    return readApiObject<InventoryStatistics>(response.data as Record<string, unknown>);
   },
 
   // Thống kê mã giảm giá
   getCouponUsage: async (): Promise<CouponUsage[]> => {
     const response = await api.get('/statistics/coupons/usage');
-    return response.data.data;
+    return readApiArray<CouponUsage>(response.data as Record<string, unknown>);
   },
 
   // Thống kê yêu cầu hoàn trả
   getReturns: async (): Promise<ReturnStatistics> => {
     const response = await api.get('/statistics/returns/statistics');
-    return response.data.data;
+    return readApiObject<ReturnStatistics>(response.data as Record<string, unknown>);
   },
 
   // Thống kê top khách hàng
   getTopCustomers: async (limit: number = 10): Promise<TopCustomer[]> => {
     const response = await api.get('/statistics/customers/top', { params: { limit } });
-    return response.data.data;
+    return readApiArray<TopCustomer>(response.data as Record<string, unknown>);
   },
 };
 
