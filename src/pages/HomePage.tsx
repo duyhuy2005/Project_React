@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Button, Row, Col, Tag, Spin } from "antd";
 import {
   RightOutlined,
@@ -27,7 +27,14 @@ const HomePage: React.FC = () => {
   const featuredDisplayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8);
   const newDisplayProducts = newProducts.length > 0 ? newProducts : products.slice(0, 8);
 
-  const getCategoryCount = (cat: string) => products.filter(p => p.category === cat).length;
+  const categoryCounts = useMemo(() => {
+    return products.reduce<Record<string, number>>((acc, product) => {
+      acc[product.category] = (acc[product.category] || 0) + 1;
+      return acc;
+    }, {});
+  }, [products]);
+
+  const getCategoryCount = (cat: string) => categoryCounts[cat] || 0;
 
   const categoryData = categories
     .filter((category: (typeof categories)[number]) => category.key !== "all")
