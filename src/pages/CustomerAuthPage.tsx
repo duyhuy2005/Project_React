@@ -27,14 +27,12 @@ const CustomerAuthPage = () => {
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
 
-  const handleLogin = (values: { email: string; password: string; remember?: boolean }) => {
+  const handleLogin = async (values: { email: string; password: string; remember?: boolean }) => {
     setLoading(true);
-    setTimeout(() => {
-      login({
-        id: Date.now(),
-        name: values.email.split("@")[0],
+    try {
+      await login({
         email: values.email,
-        role: "customer",
+        password: values.password,
       });
       message.success({
         content: "Đăng nhập thành công! Chào mừng bạn đến CHRONOS 🎉",
@@ -42,19 +40,21 @@ const CustomerAuthPage = () => {
         style: { marginTop: '20vh' }
       });
       navigate("/");
+    } catch {
+      message.error("Đăng nhập thất bại. Kiểm tra lại email hoặc mật khẩu.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleRegister = (values: { name: string; email: string; phone: string; password: string; agree?: boolean }) => {
+  const handleRegister = async (values: { name: string; email: string; phone: string; password: string; agree?: boolean }) => {
     setLoading(true);
-    setTimeout(() => {
-      register({
-        id: Date.now(),
+    try {
+      await register({
         name: values.name,
         email: values.email,
         phone: values.phone,
-        role: "customer",
+        password: values.password,
       });
       message.success({
         content: "Đăng ký thành công! Chào mừng bạn đến CHRONOS 🎉",
@@ -62,8 +62,11 @@ const CustomerAuthPage = () => {
         style: { marginTop: '20vh' }
       });
       navigate("/");
+    } catch {
+      message.error("Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const inputStyle = {

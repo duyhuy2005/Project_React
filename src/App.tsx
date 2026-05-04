@@ -1,37 +1,36 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ConfigProvider } from "antd";
+import { lazy, Suspense } from "react";
+import { ConfigProvider, Spin } from "antd";
 import viVN from "antd/locale/vi_VN";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
-import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import AboutPage from "./pages/AboutPage";
-import OrderTrackingPage from "./pages/OrderTrackingPage";
-import ReturnRequestPage from "./pages/ReturnRequestPage";
-import CustomerAuthPage from "./pages/CustomerAuthPage";
-import AdminLoginPage from "./pages/admin/AdminLoginPage";
-import AdminDashboard from "./pages/admin/DashboardPage";
-import AdminProducts from "./pages/admin/ProductManagementPage";
-import AdminOrders from "./pages/admin/OrderManagementPage";
-import AdminReturns from "./pages/admin/ReturnManagementPage";
-import AdminCustomers from "./pages/admin/CustomerManagementPage";
-import AdminCategories from "./pages/admin/CategoriesPage";
-import AdminInventory from "./pages/admin/InventoryPage";
-import AdminFinance from "./pages/admin/FinancePage";
-import AdminReports from "./pages/admin/ReportsPage";
-import AdminMarketing from "./pages/admin/MarketingPage";
-import AdminCoupons from "./pages/admin/CouponsPage";
-import AdminStatistics from "./pages/admin/StatisticsPage";
-import AdminSettings from "./pages/admin/SettingsPage";
 import "./App.css";
 
-console.log("🔴 App.tsx: Imported successfully");
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
+const ReturnRequestPage = lazy(() => import("./pages/ReturnRequestPage"));
+const CustomerAuthPage = lazy(() => import("./pages/CustomerAuthPage"));
+const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage"));
+const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
+const AdminProducts = lazy(() => import("./pages/admin/ProductManagementPage"));
+const AdminOrders = lazy(() => import("./pages/admin/OrderManagementPage"));
+const AdminReturns = lazy(() => import("./pages/admin/ReturnManagementPage"));
+const AdminCustomers = lazy(() => import("./pages/admin/CustomerManagementPage"));
+const AdminCategories = lazy(() => import("./pages/admin/CategoriesPage"));
+const AdminInventory = lazy(() => import("./pages/admin/InventoryPage"));
+const AdminFinance = lazy(() => import("./pages/admin/FinancePage"));
+const AdminReports = lazy(() => import("./pages/admin/ReportsPage"));
+const AdminMarketing = lazy(() => import("./pages/admin/MarketingPage"));
+const AdminCoupons = lazy(() => import("./pages/admin/CouponsPage"));
+const AdminStatistics = lazy(() => import("./pages/admin/StatisticsPage"));
+const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
 
 function App() {
-  console.log("🔴 App component: Rendering...");
   
   return (
     <ConfigProvider
@@ -45,40 +44,48 @@ function App() {
       }}
     >
       <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/order-tracking" element={<OrderTrackingPage />} />
-            <Route path="/return-request" element={<ReturnRequestPage />} />
-          </Route>
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white">
+              <Spin size="large" />
+            </div>
+          }
+        >
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/product/:id" element={<ProductDetailPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/order-tracking" element={<OrderTrackingPage />} />
+              <Route path="/return-request" element={<ReturnRequestPage />} />
+            </Route>
 
-          {/* Auth Pages */}
-          <Route path="/login" element={<CustomerAuthPage />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+            {/* Auth Pages */}
+            <Route path="/login" element={<CustomerAuthPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
 
-          {/* Admin Routes */}
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/products" element={<AdminProducts />} />
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/returns" element={<AdminReturns />} />
-            <Route path="/admin/customers" element={<AdminCustomers />} />
-            <Route path="/admin/categories" element={<AdminCategories />} />
-            <Route path="/admin/inventory" element={<AdminInventory />} />
-            <Route path="/admin/finance" element={<AdminFinance />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/marketing" element={<AdminMarketing />} />
-            <Route path="/admin/coupons" element={<AdminCoupons />} />
-            <Route path="/admin/statistics" element={<AdminStatistics />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-          </Route>
-        </Routes>
+            {/* Admin Routes */}
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/returns" element={<AdminReturns />} />
+              <Route path="/admin/customers" element={<AdminCustomers />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/inventory" element={<AdminInventory />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/marketing" element={<AdminMarketing />} />
+              <Route path="/admin/coupons" element={<AdminCoupons />} />
+              <Route path="/admin/statistics" element={<AdminStatistics />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </ConfigProvider>
   );

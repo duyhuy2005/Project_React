@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Row,
   Col,
@@ -31,10 +31,26 @@ const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const products = useProductStore((state) => state.products);
+  const loading = useProductStore((state) => state.loading);
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
   const addToCart = useCartStore((state) => state.addToCart);
   const [quantity, setQuantity] = useState(1);
 
+  useEffect(() => {
+    if (products.length === 0) {
+      void fetchProducts();
+    }
+  }, [fetchProducts, products.length]);
+
   const product = products.find((p) => p.id === Number(id));
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="text-center py-32">
+        <div className="text-gray-500">Đang tải sản phẩm...</div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

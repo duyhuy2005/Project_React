@@ -22,16 +22,19 @@ import {
   RollbackOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { useOrderStore, returnStatusConfig } from "../../stores/orderStore";
-import type { ReturnRequest, ReturnStatus } from "../../stores/orderStore";
+import { returnStatusConfig } from "../../stores/orderStore";
+import { useReturnStore } from "../../stores/returnStore";
+import type { ReturnRequest } from "../../services/returnService";
+import type { ReturnStatus } from "../../stores/orderStore";
 import { formatPrice } from "../../data/products";
+import type { OrderItemDetail } from "../../services/orderService";
 import "./AdminStyles.css";
 
 const { Text } = Typography;
 
 const ReturnManagementPage = () => {
-  const returnRequests = useOrderStore((state) => state.returnRequests);
-  const updateReturnStatus = useOrderStore((state) => state.updateReturnStatus);
+  const returnRequests = useReturnStore((state) => state.returns);
+  const updateReturnStatus = useReturnStore((state) => state.updateReturnStatus);
   
   const [searchText, setSearchText] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -39,11 +42,14 @@ const ReturnManagementPage = () => {
   const [selectedReturn, setSelectedReturn] = useState<ReturnRequest | null>(null);
 
   const filteredReturns = returnRequests.filter((r) => {
+    const requestCode = (r.maHoanTra || String(r.id)).toLowerCase();
+    const orderCode = String(r.donHang?.maDonHang || r.donHangId).toLowerCase();
+    const reason = r.lyDo.toLowerCase();
     const matchSearch =
-      r.id.toLowerCase().includes(searchText.toLowerCase()) ||
-      r.orderId.toLowerCase().includes(searchText.toLowerCase()) ||
-      r.reason.toLowerCase().includes(searchText.toLowerCase());
-    const matchStatus = filterStatus === "all" || r.status === filterStatus;
+      requestCode.includes(searchText.toLowerCase()) ||
+      orderCode.includes(searchText.toLowerCase()) ||
+      reason.includes(searchText.toLowerCase());
+    const matchStatus = filterStatus === "all" || r.trangThai === filterStatus;
     return matchSearch && matchStatus;
   });
 
@@ -59,10 +65,10 @@ const ReturnManagementPage = () => {
       content: `Bạn có chắc muốn ${getStatusActionLabel(newStatus)} yêu cầu này?`,
       okText: 'Xác nhận',
       cancelText: 'Hủy',
-      onOk: () => {
-        updateReturnStatus(returnId, newStatus);
+      onOk: async () => {
+        await updateReturnStatus(returnId, newStatus);
         if (selectedReturn?.id === returnId) {
-          setSelectedReturn((prev) => (prev ? { ...prev, status: newStatus } : null));
+          setSelectedReturn((prev) => (prev ? { ...prev, trangThai: newStatus } : null));
         }
         message.success(`Đã ${getStatusActionLabel(newStatus)} yêu cầu hoàn trả!`);
       },
@@ -102,57 +108,59 @@ const ReturnManagementPage = () => {
   const columns = [
     {
       title: "Mã yêu cầu",
-      dataIndex: "id",
+      dataIndex: "maHoanTra",
       key: "id",
-      render: (id: string) => (
+      render: (_: string, record: ReturnRequest) => (
         <Text strong style={{ color: "#fa8c16" }}>
-          {id}
+          {record.maHoanTra || record.id}
         </Text>
       ),
     },
     {
       title: "Mã đơn hàng",
-      dataIndex: "orderId",
+      dataIndex: "donHangId",
       key: "orderId",
-      render: (orderId: string) => (
-        <Text style={{ color: "#4f46e5" }}>{orderId}</Text>
+      render: (_: string, record: ReturnRequest) => (
+        <Text style={{ color: "#4f46e5" }}>{record.donHang?.maDonHang || record.donHangId}</Text>
       ),
     },
     {
       title: "Lý do",
-      dataIndex: "reason",
+      dataIndex: "lyDo",
       key: "reason",
       render: (reason: string) => getReasonLabel(reason),
     },
     {
       title: "Số tiền hoàn",
-      dataIndex: "refundAmount",
+      dataIndex: "soTienHoanTra",
       key: "refundAmount",
-      render: (amount: number) => (
+      render: (amount?: number) => (
         <Text strong style={{ color: "#c9a96e" }}>
-          {formatPrice(amount)}
+          {formatPrice(amount || 0)}
         </Text>
       ),
     },
     {
       title: "Trạng thái",
-      dataIndex: "status",
+      dataIndex: "trangThai",
       key: "status",
-      render: (status: ReturnStatus) => {
-        const config = returnStatusConfig[status];
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
+        render: (status: string) => {
+          const config = returnStatusConfig[status as ReturnStatus];
+          return <Tag color={config.color}>{config.label}</Tag>;
+        },
+
     },
     {
       title: "Ngày tạo",
-      dataIndex: "createdAt",
+      dataIndex: "ngayTao",
       key: "createdAt",
       render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
       title: "Thao tác",
       key: "action",
-      render: (_: any, record: ReturnRequest) => (
+       render: (_: unknown, record: ReturnRequest) => (
+
         <Space>
           <Button
             type="link"
@@ -193,7 +201,8 @@ const ReturnManagementPage = () => {
           </div>
           <Space>
             {Object.entries(returnStatusConfig).map(([key, val]) => {
-              const count = returnRequests.filter((r: ReturnRequest) => r.status === key).length;
+               const count = returnRequests.filter((r: ReturnRequest) => r.trangThai === key).length;
+
               return (
                 <Tag
                   key={key}
@@ -237,7 +246,8 @@ const ReturnManagementPage = () => {
                   <Text type="secondary">Mã yêu cầu</Text>
                   <div>
                     <Text strong style={{ color: "#fa8c16" }}>
-                      {selectedReturn.id}
+                       {selectedReturn.maHoanTra || selectedReturn.id}
+
                     </Text>
                   </div>
                 </Col>
@@ -245,15 +255,17 @@ const ReturnManagementPage = () => {
                   <Text type="secondary">Mã đơn hàng</Text>
                   <div>
                     <Text strong style={{ color: "#4f46e5" }}>
-                      {selectedReturn.orderId}
+                       {selectedReturn.donHang?.maDonHang || selectedReturn.donHangId}
+
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <Text type="secondary">Trạng thái</Text>
                   <div>
-                    <Tag color={returnStatusConfig[selectedReturn.status].color}>
-                      {returnStatusConfig[selectedReturn.status].label}
+                     <Tag color={returnStatusConfig[selectedReturn.trangThai as ReturnStatus].color}>
+                       {returnStatusConfig[selectedReturn.trangThai as ReturnStatus].label}
+
                     </Tag>
                   </div>
                 </Col>
@@ -261,7 +273,8 @@ const ReturnManagementPage = () => {
                   <Text type="secondary">Ngày tạo</Text>
                   <div>
                     <Text>
-                      {new Date(selectedReturn.createdAt).toLocaleString("vi-VN")}
+                       {new Date(selectedReturn.ngayTao).toLocaleString("vi-VN")}
+
                     </Text>
                   </div>
                 </Col>
@@ -272,27 +285,31 @@ const ReturnManagementPage = () => {
               <div style={{ marginBottom: 12 }}>
                 <Text type="secondary">Lý do hoàn trả</Text>
                 <div>
-                  <Text strong>{getReasonLabel(selectedReturn.reason)}</Text>
+                   <Text strong>{getReasonLabel(selectedReturn.lyDo)}</Text>
+
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
                 <Text type="secondary">Mô tả chi tiết</Text>
                 <div>
-                  <Text>{selectedReturn.description || "Không có mô tả"}</Text>
+                   <Text>{selectedReturn.ghiChuQuanTri || "Không có mô tả"}</Text>
+
                 </div>
               </div>
               <div>
                 <Text type="secondary">Số tiền hoàn</Text>
                 <div>
                   <Text strong style={{ fontSize: 20, color: "#c9a96e" }}>
-                    {formatPrice(selectedReturn.refundAmount)}
+                     {formatPrice(selectedReturn.soTienHoanTra || 0)}
+
                   </Text>
                 </div>
               </div>
             </Card>
 
             <Card title="Sản phẩm hoàn trả" style={{ marginBottom: 16 }}>
-              {selectedReturn.items.map((item, idx) => (
+               {(selectedReturn.donHang?.chiTietDonHangs || []).map((item: OrderItemDetail, idx: number) => (
+
                 <div
                   key={idx}
                   style={{
@@ -304,13 +321,16 @@ const ReturnManagementPage = () => {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <div>
-                      <Text strong>{item.product.name}</Text>
+                       <Text strong>{item.tenSanPham}</Text>
+
                       <div>
-                        <Text type="secondary">Số lượng: {item.quantity}</Text>
+                         <Text type="secondary">Số lượng: {item.soLuong}</Text>
+
                       </div>
                     </div>
                     <Text strong style={{ color: "#c9a96e" }}>
-                      {formatPrice(item.price * item.quantity)}
+                       {formatPrice(item.gia * item.soLuong)}
+
                     </Text>
                   </div>
                 </div>
@@ -318,7 +338,8 @@ const ReturnManagementPage = () => {
             </Card>
 
             {/* Action Buttons */}
-            {selectedReturn.status === "pending" && (
+             {selectedReturn.trangThai === "pending" && (
+
               <Space style={{ width: "100%", justifyContent: "center" }}>
                 <Button
                   type="primary"
@@ -338,7 +359,8 @@ const ReturnManagementPage = () => {
               </Space>
             )}
 
-            {selectedReturn.status === "approved" && (
+             {selectedReturn.trangThai === "approved" && (
+
               <Button
                 type="primary"
                 block

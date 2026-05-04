@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Row,
   Col,
@@ -34,6 +34,12 @@ const ProductsPage: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 40000000]);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  useEffect(() => {
+    if (products.length === 0) {
+      void useProductStore.getState().fetchProducts();
+    }
+  }, [products.length]);
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -73,7 +79,7 @@ const ProductsPage: React.FC = () => {
     }
 
     return result;
-  }, [search, category, brand, priceRange, sortBy]);
+  }, [products, search, category, brand, priceRange, sortBy]);
 
   const clearFilters = () => {
     setSearch("");

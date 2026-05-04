@@ -9,24 +9,21 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
 
-  const onFinish = (values: { username: string; password: string; remember: boolean }) => {
+  const onFinish = async (values: { username: string; password: string; remember: boolean }) => {
     setLoading(true);
-    setTimeout(() => {
-      if (values.username === "admin" && values.password === "admin") {
-        login({
-          id: 1,
-          name: "Admin",
-          email: "admin@chronos.vn",
-          role: "admin",
-        });
-        localStorage.setItem("admin_logged_in", "true");
-        message.success("Đăng nhập Admin thành công!");
-        navigate("/admin");
-      } else {
-        message.error("Tài khoản hoặc mật khẩu không đúng!");
-      }
+    try {
+      await login({
+        email: values.username,
+        password: values.password,
+      });
+      localStorage.setItem("admin_logged_in", "true");
+      message.success("Đăng nhập Admin thành công!");
+      navigate("/admin");
+    } catch {
+      message.error("Tài khoản hoặc mật khẩu không đúng!");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -132,11 +129,15 @@ const AdminLoginPage = () => {
         >
           <Form.Item
             name="username"
-            rules={[{ required: true, message: "Vui lòng nhập tài khoản!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập email admin!" },
+              { type: "email", message: "Email không hợp lệ!" }
+            ]}
           >
             <Input
               prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.3)" }} />}
-              placeholder="Tài khoản"
+                placeholder="Email admin"
+
               style={{
                 background: "rgba(255, 255, 255, 0.06)",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -198,9 +199,10 @@ const AdminLoginPage = () => {
             border: "1px solid rgba(201, 169, 110, 0.1)",
           }}
         >
-          <p style={{ color: "rgba(255, 255, 255, 0.35)", fontSize: 12, margin: 0 }}>
-            Demo: <span style={{ color: "#c9a96e" }}>admin</span> / <span style={{ color: "#c9a96e" }}>admin</span>
-          </p>
+            <p style={{ color: "rgba(255, 255, 255, 0.35)", fontSize: 12, margin: 0 }}>
+              Demo: <span style={{ color: "#c9a96e" }}>admin@chronos.com</span> / <span style={{ color: "#c9a96e" }}>admin123</span>
+            </p>
+
         </div>
 
         <div style={{ textAlign: "center", marginTop: 20 }}>

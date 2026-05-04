@@ -11,35 +11,15 @@ export const OrderStatusNotification = () => {
   const user = useAuthStore((state) => state.user);
   const prevOrdersRef = useRef<typeof orders>([]);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Lọc đơn hàng của user hiện tại
-    const userOrders = orders.filter(o => o.customerEmail === user.email);
-    const prevUserOrders = prevOrdersRef.current.filter(o => o.customerEmail === user.email);
-
-    // Kiểm tra thay đổi trạng thái
-    userOrders.forEach(order => {
-      const prevOrder = prevUserOrders.find(o => o.id === order.id);
-      
-      // Nếu có thay đổi trạng thái
-      if (prevOrder && prevOrder.status !== order.status) {
-        showStatusNotification(order.id, order.status, order.totalAmount);
-      }
-    });
-
-    prevOrdersRef.current = orders;
-  }, [orders, user]);
-
-  const showStatusNotification = (
+  function showStatusNotification(
     orderId: string, 
     newStatus: OrderStatus,
     totalAmount: number
-  ) => {
+  ) {
     let icon = <CheckCircleOutlined style={{ color: '#52c41a' }} />;
     let title = '';
     let description: React.ReactNode = '';
-    let notifStyle: any = {};
+    let notifStyle: React.CSSProperties = {};
 
     switch (newStatus) {
       case 'confirmed':
@@ -136,7 +116,23 @@ export const OrderStatusNotification = () => {
         window.location.href = '/order-tracking';
       },
     });
-  };
+  }
+
+  useEffect(() => {
+    if (!user) return;
+
+    const userOrders = orders.filter((o) => o.customerEmail === user.email);
+    const prevUserOrders = prevOrdersRef.current.filter((o) => o.customerEmail === user.email);
+
+    userOrders.forEach((order) => {
+      const prevOrder = prevUserOrders.find((o) => o.id === order.id);
+      if (prevOrder && prevOrder.status !== order.status) {
+        showStatusNotification(order.id, order.status, order.totalAmount);
+      }
+    });
+
+    prevOrdersRef.current = orders;
+  }, [orders, user]);
 
   return null;
 };

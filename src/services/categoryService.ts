@@ -19,43 +19,61 @@ export interface CreateCategoryRequest {
   hoatDong?: boolean;
 }
 
+const toNumberId = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const numeric = Number(value.replace(/\D/g, ''));
+    return Number.isNaN(numeric) ? 0 : numeric;
+  }
+  return 0;
+};
+
+const normalizeCategory = (item: Record<string, unknown>): Category => ({
+  id: toNumberId(item.id ?? item._id),
+  ten: (item.ten as string | undefined) ?? (item.name as string | undefined) ?? '',
+  slug: (item.slug as string | undefined) ?? '',
+  bieuTuong: (item.bieuTuong as string | undefined) ?? (item.icon as string | undefined),
+  moTa: (item.moTa as string | undefined) ?? (item.description as string | undefined),
+  hoatDong: Boolean((item.hoatDong as boolean | undefined) ?? (item.isActive as boolean | undefined)),
+  ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
+  ngayCapNhat: (item.ngayCapNhat as string | undefined) ?? (item.updatedAt as string | undefined) ?? new Date().toISOString(),
+});
+
 const categoryService = {
-  // Lấy danh sách danh mục
   getAll: async (): Promise<Category[]> => {
     const response = await api.get('/categories');
-    return response.data.data;
+    const categories = ((response.data.data as Record<string, unknown> | undefined)?.categories as Record<string, unknown>[] | undefined) ?? [];
+    return categories.map(normalizeCategory);
   },
 
-  // Lấy chi tiết danh mục
   getById: async (id: number): Promise<Category> => {
     const response = await api.get(`/categories/${id}`);
-    return response.data.data;
+    const category = ((response.data.data as Record<string, unknown> | undefined)?.category as Record<string, unknown> | undefined) ?? {};
+    return normalizeCategory(category);
   },
 
-  // Lấy danh mục theo slug
   getBySlug: async (slug: string): Promise<Category> => {
     const response = await api.get(`/categories/slug/${slug}`);
-    return response.data.data;
+    const category = ((response.data.data as Record<string, unknown> | undefined)?.category as Record<string, unknown> | undefined) ?? {};
+    return normalizeCategory(category);
   },
 
-  // Tạo danh mục mới (Admin)
   create: async (data: CreateCategoryRequest): Promise<Category> => {
     const response = await api.post('/categories', data);
-    return response.data.data;
+    const category = ((response.data.data as Record<string, unknown> | undefined)?.category as Record<string, unknown> | undefined) ?? {};
+    return normalizeCategory(category);
   },
 
-  // Cập nhật danh mục (Admin)
   update: async (id: number, data: Category): Promise<Category> => {
     const response = await api.put(`/categories/${id}`, data);
-    return response.data.data;
+    const category = ((response.data.data as Record<string, unknown> | undefined)?.category as Record<string, unknown> | undefined) ?? {};
+    return normalizeCategory(category);
   },
 
-  // Xóa danh mục - soft delete (Admin)
   delete: async (id: number): Promise<void> => {
     await api.delete(`/categories/${id}`);
   },
 
-  // Xóa vĩnh viễn danh mục (Admin)
   permanentDelete: async (id: number): Promise<void> => {
     await api.delete(`/categories/${id}/permanent`);
   },

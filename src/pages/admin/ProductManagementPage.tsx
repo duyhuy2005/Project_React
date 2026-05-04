@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   Button,
@@ -23,16 +23,23 @@ import {
 import { formatPrice, categories, brands } from "../../data/products";
 import type { Product } from "../../data/products";
 import { useProductStore } from "../../stores/productStore";
+import type { UpdateProductRequest } from "../../services/productService";
 import "./AdminStyles.css";
 
 const ProductManagementPage = () => {
-  const { products: productList, addProduct, updateProduct, deleteProduct } = useProductStore();
+  const { products: productList, createProduct, updateProduct, deleteProduct, fetchProducts } = useProductStore();
   const [searchText, setSearchText] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterBrand, setFilterBrand] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (productList.length === 0) {
+      void fetchProducts();
+    }
+  }, [fetchProducts, productList.length]);
 
   const filteredProducts = productList.filter((p) => {
     const matchSearch =
@@ -98,10 +105,44 @@ const ProductManagementPage = () => {
       };
 
       if (editingProduct) {
-        updateProduct(editingProduct.id, productData);
+        const updatePayload: UpdateProductRequest = {
+          ten: productData.name,
+          thuongHieu: productData.brand,
+          gia: productData.price,
+          giaGoc: productData.originalPrice,
+          danhMuc: productData.category,
+          moTa: productData.description,
+          hinhAnh: productData.image,
+          sanPhamMoi: productData.isNew,
+          banChay: productData.isBestSeller,
+          boMay: productData.specs.movement,
+          chatLieuVo: productData.specs.caseMaterial,
+          kichThuocVo: productData.specs.caseSize,
+          chongNuoc: productData.specs.waterResistance,
+          matKinh: productData.specs.crystal,
+          dayDeo: productData.specs.strap,
+        };
+        void updateProduct(editingProduct.id, updatePayload);
         message.success("Cập nhật sản phẩm thành công!");
       } else {
-        addProduct(productData);
+                void createProduct({
+          ten: productData.name,
+          thuongHieu: productData.brand,
+          gia: productData.price,
+          giaGoc: productData.originalPrice,
+          danhMuc: productData.category,
+          moTa: productData.description,
+          hinhAnh: productData.image,
+          soLuongTon: 0,
+          sanPhamMoi: false,
+          banChay: false,
+          boMay: productData.specs.movement,
+          chatLieuVo: productData.specs.caseMaterial,
+          kichThuocVo: productData.specs.caseSize,
+          chongNuoc: productData.specs.waterResistance,
+          matKinh: productData.specs.crystal,
+          dayDeo: productData.specs.strap,
+        });
         message.success("Thêm sản phẩm mới thành công!");
       }
       setIsModalOpen(false);

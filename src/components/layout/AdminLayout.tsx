@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Layout, Menu, Avatar, Badge, Dropdown, Breadcrumb } from "antd";
 import {
   DashboardOutlined,
@@ -12,8 +12,6 @@ import {
   LogoutOutlined,
   SettingOutlined,
   HomeOutlined,
-  BarChartOutlined,
-  RollbackOutlined,
   AppstoreOutlined,
   InboxOutlined,
   DollarOutlined,
@@ -26,7 +24,12 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import type { MenuProps } from "antd";
 import { OrderNotification } from "../admin/OrderNotification";
 import { ReturnRequestNotification } from "../admin/ReturnRequestNotification";
+import { useCategoryStore } from "../../stores/categoryStore";
+import { useCouponStore } from "../../stores/couponStore";
+import { useProductStore } from "../../stores/productStore";
 import { useOrderStore } from "../../stores/orderStore";
+import { useReturnStore } from "../../stores/returnStore";
+import { useUserStore } from "../../stores/userStore";
 import "../../pages/admin/AdminStyles.css";
 
 const { Sider, Header, Content } = Layout;
@@ -52,9 +55,26 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const orders = useOrderStore((state) => state.orders);
-  const returnRequests = useOrderStore((state) => state.returnRequests);
+  const returnRequests = useReturnStore((state) => state.returns);
+  const fetchOrders = useOrderStore((state) => state.fetchAllOrders);
+  const fetchReturns = useReturnStore((state) => state.fetchAllReturns);
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const fetchUsers = useUserStore((state) => state.fetchUsers);
+  const fetchCategories = useCategoryStore((state) => state.fetchCategories);
+  const fetchCoupons = useCouponStore((state) => state.fetchCoupons);
   const newOrdersCount = orders.filter(o => o.status === 'new').length;
-  const pendingReturnsCount = returnRequests.filter(r => r.status === 'pending').length;
+  const pendingReturnsCount = returnRequests.filter((r) => r.trangThai === 'pending').length;
+
+  useEffect(() => {
+    void Promise.all([
+      fetchOrders(),
+      fetchReturns(),
+      fetchProducts(),
+      fetchUsers(),
+      fetchCategories(),
+      fetchCoupons(),
+    ]);
+  }, [fetchCategories, fetchCoupons, fetchOrders, fetchProducts, fetchReturns, fetchUsers]);
 
   const menuItems: MenuProps["items"] = [
     {

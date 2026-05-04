@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { notification } from 'antd';
 import { RollbackOutlined } from '@ant-design/icons';
-import { useOrderStore } from '../../stores/orderStore';
+import { useReturnStore } from '../../stores/returnStore';
 import { formatPrice } from '../../data/products';
 
 export const ReturnRequestNotification = () => {
-  const returnRequests = useOrderStore((state) => state.returnRequests);
+  const returnRequests = useReturnStore((state) => state.returns);
   const prevReturnCountRef = useRef(returnRequests.length);
 
   useEffect(() => {
@@ -13,22 +13,23 @@ export const ReturnRequestNotification = () => {
     if (prevReturnCountRef.current > 0 && returnRequests.length > prevReturnCountRef.current) {
       const newReturn = returnRequests[0]; // Yêu cầu mới nhất
       
-      if (newReturn.status === 'pending') {
+        if (newReturn.trangThai === 'pending') {
+
         notification.warning({
           message: '⚠️ Yêu cầu hoàn trả mới!',
           description: (
             <div>
               <p style={{ margin: 0, fontWeight: 600 }}>
-                Mã yêu cầu: {newReturn.id}
+                Mã yêu cầu: {newReturn.maHoanTra || newReturn.id}
               </p>
               <p style={{ margin: '4px 0 0 0' }}>
-                Đơn hàng: {newReturn.orderId}
+                Đơn hàng: {newReturn.donHang?.maDonHang || newReturn.donHangId}
               </p>
               <p style={{ margin: '4px 0 0 0' }}>
-                Lý do: {getReasonLabel(newReturn.reason)}
+                Lý do: {getReasonLabel(newReturn.lyDo)}
               </p>
               <p style={{ margin: '4px 0 0 0', color: '#fa8c16', fontWeight: 600 }}>
-                Số tiền hoàn: {formatPrice(newReturn.refundAmount)}
+                Số tiền hoàn: {formatPrice(newReturn.soTienHoanTra || 0)}
               </p>
             </div>
           ),

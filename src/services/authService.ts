@@ -28,51 +28,90 @@ export interface AuthResponse {
   user?: User;
 }
 
+const toNumberId = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const numeric = Number(value.replace(/\D/g, ''));
+    return Number.isNaN(numeric) ? 0 : numeric;
+  }
+  return 0;
+};
+
+const normalizeUser = (user?: Record<string, unknown>): User | undefined => {
+  if (!user) return undefined;
+
+  return {
+    id: toNumberId(user.id ?? user._id),
+    ten: (user.ten as string | undefined) ?? (user.name as string | undefined) ?? '',
+    email: (user.email as string | undefined) ?? '',
+    soDienThoai: (user.soDienThoai as string | undefined) ?? (user.phone as string | undefined),
+    vaiTro: (user.vaiTro as string | undefined) ?? (user.role as string | undefined) ?? 'customer',
+    ngayTao: (user.ngayTao as string | undefined) ?? (user.createdAt as string | undefined) ?? new Date().toISOString(),
+  };
+};
+
+const normalizeAuthResponse = (payload: Record<string, unknown>): AuthResponse => {
+  const data = (payload.data as Record<string, unknown> | undefined) ?? payload;
+  return {
+    success: Boolean(payload.success),
+    message: (payload.message as string | undefined) ?? '',
+    token: data.token as string | undefined,
+    user: normalizeUser(data.user as Record<string, unknown> | undefined),
+  };
+};
+
 const authService = {
-  // Đăng nhập
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const response = await api.post('/auth/login', data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    const response = await api.post('/auth/login', {
+      email: data.email,
+      password: data.matKhau,
+    });
+    const normalized = normalizeAuthResponse(response.data as Record<string, unknown>);
+    if (normalized.token) {
+      localStorage.setItem('token', normalized.token);
+      localStorage.setItem('user', JSON.stringify(normalized.user));
     }
-    return response.data;
+    return normalized;
   },
 
-  // Đăng ký
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await api.post('/auth/register', data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    const response = await api.post('/auth/register', {
+      name: data.ten,
+      email: data.email,
+      password: data.matKhau,
+      phone: data.soDienThoai,
+    });
+    const normalized = normalizeAuthResponse(response.data as Record<string, unknown>);
+    if (normalized.token) {
+      localStorage.setItem('token', normalized.token);
+      localStorage.setItem('user', JSON.stringify(normalized.user));
     }
-    return response.data;
+    return normalized;
   },
 
-  // Lấy thông tin user hiện tại
   getMe: async (): Promise<User> => {
     const response = await api.get('/auth/me');
-    return response.data;
+    const user = normalizeUser((response.data.data as Record<string, unknown> | undefined)?.user as Record<string, unknown> | undefined);
+    if (!user) {
+      throw new Error('Không lấy được thông tin người dùng');
+    }
+    return user;
   },
 
-  // Đăng xuất
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
-  // Lấy user từ localStorage
   getCurrentUser: (): User | null => {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Kiểm tra đã đăng nhập
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('token');
   },
 
-  // Kiểm tra là admin
   isAdmin: (): boolean => {
     const user = authService.getCurrentUser();
     return user?.vaiTro === 'admin';

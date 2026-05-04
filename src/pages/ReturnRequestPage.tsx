@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -20,7 +20,9 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrderStore, returnStatusConfig } from "../stores/orderStore";
-import type { Order } from "../stores/orderStore";
+import { useReturnStore } from "../stores/returnStore";
+import type { ReturnStatus } from "../stores/orderStore";
+import type { ReturnRequest as BackendReturnRequest } from "../services/returnService";
 import { formatPrice } from "../data/products";
 
 const returnReasons = [
@@ -38,14 +40,30 @@ const ReturnRequestPage: React.FC = () => {
   const preselectedOrderId = searchParams.get("orderId") || "";
 
   const { user, isLoggedIn } = useAuthStore();
-  const { getOrdersByEmail, submitReturnRequest, getReturnsByEmail } = useOrderStore();
+  const { orders, fetchMyOrders, getOrdersByEmail } = useOrderStore();
+  const { returns, fetchMyReturns, createReturn } = useReturnStore();
   const [form] = Form.useForm();
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [manualSelectedOrderId, setManualSelectedOrderId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const userOrders = isLoggedIn && user ? getOrdersByEmail(user.email) : [];
+  useEffect(() => {
+    if (isLoggedIn) {
+      void fetchMyOrders();
+      void fetchMyReturns();
+    }
+  }, [fetchMyOrders, fetchMyReturns, isLoggedIn]);
+
+  const userOrders = isLoggedIn && user ? getOrdersByEmail(user.email) : orders;
   const completedOrders = userOrders.filter((o) => o.status === "completed");
-  const userReturns = isLoggedIn && user ? getReturnsByEmail(user.email) : [];
+  const userReturns = returns;
+  const selectedOrderId = manualSelectedOrderId || preselectedOrderId;
+  const selectedOrder = completedOrders.find((o) => o.id === selectedOrderId) || null;
+
+  useEffect(() => {
+    if (preselectedOrderId) {
+      form.setFieldValue("orderId", preselectedOrderId);
+    }
+  }, [form, preselectedOrderId]);
 
   // Not logged in
   if (!isLoggedIn) {
@@ -67,19 +85,6 @@ const ReturnRequestPage: React.FC = () => {
       </div>
     );
   }
-
-  const handleSelectOrder = (orderId: string) => {
-    const order = completedOrders.find((o) => o.id === orderId);
-    setSelectedOrder(order || null);
-  };
-
-  // Pre-select order if coming from tracking page
-  React.useEffect(() => {
-    if (preselectedOrderId) {
-      handleSelectOrder(preselectedOrderId);
-      form.setFieldValue("orderId", preselectedOrderId);
-    }
-  }, [preselectedOrderId]);
 
   const handleSubmit = async () => {
     try {
@@ -105,17 +110,12 @@ const ReturnRequestPage: React.FC = () => {
           setIsSubmitting(true);
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          submitReturnRequest({
-            orderId: selectedOrder.id,
-            reason: values.reason,
-            description: values.description || "",
-            items: selectedOrder.items,
-            refundAmount: selectedOrder.totalAmount,
-          });
+          await createReturn(selectedOrder.backendId, values.reason);
+          await fetchMyReturns();
 
           message.success("Đã gửi yêu cầu hoàn trả thành công!");
           form.resetFields();
-          setSelectedOrder(null);
+          setManualSelectedOrderId("");
           setIsSubmitting(false);
         },
       });
@@ -140,7 +140,8 @@ const ReturnRequestPage: React.FC = () => {
         className="mb-6"
         items={[
           { title: <Link to="/"><HomeOutlined /> Trang chủ</Link> },
-          { title: <Link to="/orders">Đơn hàng</Link> },
+           { title: <Link to="/order-tracking">Đơn hàng</Link> },
+
           { title: "Hoàn trả" },
         ]}
       />
@@ -176,7 +177,8 @@ const ReturnRequestPage: React.FC = () => {
                     placeholder="Chọn đơn hàng cần hoàn trả"
                     size="large"
                     className="!rounded-xl"
-                    onChange={handleSelectOrder}
+                     onChange={(value) => setManualSelectedOrderId(value)}
+
                     options={completedOrders.map((o) => ({
                       value: o.id,
                       label: (
@@ -261,23 +263,29 @@ const ReturnRequestPage: React.FC = () => {
               />
             ) : (
               <div className="space-y-3">
-                {userReturns.map((ret) => {
-                  const statusConf = returnStatusConfig[ret.status];
+                 {userReturns.map((ret: BackendReturnRequest) => {
+                   const mappedStatus = ret.trangThai as ReturnStatus;
+                   const statusConf = returnStatusConfig[mappedStatus];
+
                   return (
                     <div key={ret.id} className="p-3 bg-gray-50 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold text-sm text-primary m-0">{ret.id}</p>
+                         <p className="font-semibold text-sm text-primary m-0">{ret.maHoanTra || ret.id}</p>
+
                         <Tag color={statusConf.color} className="!rounded-full !m-0 !text-xs">
                           {statusConf.label}
                         </Tag>
                       </div>
-                      <p className="text-xs text-gray-400 m-0 mb-1">Đơn hàng: {ret.orderId}</p>
+                       <p className="text-xs text-gray-400 m-0 mb-1">Đơn hàng: {ret.donHang?.maDonHang || ret.donHangId}</p>
+
                       <p className="text-xs text-gray-400 m-0 mb-1">
-                        Lý do: {returnReasons.find((r) => r.value === ret.reason)?.label || ret.reason}
+                         Lý do: {returnReasons.find((r) => r.value === ret.lyDo)?.label || ret.lyDo}
+
                       </p>
                       <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-gray-400">{formatDate(ret.createdAt)}</span>
-                        <span className="text-sm font-bold text-accent">{formatPrice(ret.refundAmount)}</span>
+                         <span className="text-xs text-gray-400">{formatDate(ret.ngayTao)}</span>
+                         <span className="text-sm font-bold text-accent">{formatPrice(ret.soTienHoanTra || 0)}</span>
+
                       </div>
                     </div>
                   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Layout, Badge, Dropdown, Button, Drawer, Menu, Avatar } from "antd";
 import {
   ShoppingCartOutlined,
@@ -24,31 +24,21 @@ const AppHeader: React.FC = () => {
   const orders = useOrderStore((state) => state.orders);
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [hasNewUpdate, setHasNewUpdate] = useState(false);
+  const [seenOrderCount, setSeenOrderCount] = useState(0);
   const prevOrdersRef = useRef<typeof orders>([]);
 
-  // Theo dõi thay đổi trạng thái đơn hàng
-  useEffect(() => {
+  const hasNewUpdate = useMemo(() => {
     if (!user) {
-      setHasNewUpdate(false);
-      return;
+      return false;
     }
 
-    const userOrders = orders.filter(o => o.customerEmail === user.email);
-    const prevUserOrders = prevOrdersRef.current.filter(o => o.customerEmail === user.email);
+    const userOrders = orders.filter((o) => o.customerEmail === user.email);
+    return userOrders.length > seenOrderCount;
+  }, [orders, seenOrderCount, user]);
 
-    // Kiểm tra có đơn hàng nào thay đổi trạng thái không
-    const hasUpdate = userOrders.some(order => {
-      const prevOrder = prevUserOrders.find(o => o.id === order.id);
-      return prevOrder && prevOrder.status !== order.status;
-    });
-
-    if (hasUpdate) {
-      setHasNewUpdate(true);
-    }
-
+  useEffect(() => {
     prevOrdersRef.current = orders;
-  }, [orders, user]);
+  }, [orders]);
 
   const handleMenuClick = (key: string) => {
     if (key === "logout") {
@@ -59,7 +49,10 @@ const AppHeader: React.FC = () => {
     } else if (key === "admin") {
       navigate("/admin");
     } else if (key === "orders") {
-      setHasNewUpdate(false); // Clear badge khi xem đơn hàng
+      if (user) {
+        const userOrders = orders.filter((o) => o.customerEmail === user.email);
+        setSeenOrderCount(userOrders.length);
+      }
       navigate("/order-tracking");
     }
   };
@@ -69,7 +62,7 @@ const AppHeader: React.FC = () => {
       key: "user-info",
       label: (
         <div style={{ padding: "4px 0", borderBottom: "1px solid #f0f0f0", marginBottom: 4 }}>
-          <div style={{ fontWeight: 700, color: "#1a1a2e", fontSize: 14 }}>{user?.name}</div>
+          <div style={{ fontWeight: 700, color: "#1a1a2e", fontSize: 14 }}>{user?.ten}</div>
           <div style={{ fontSize: 12, color: "#999" }}>{user?.email}</div>
         </div>
       ),
@@ -77,7 +70,7 @@ const AppHeader: React.FC = () => {
     },
     { key: "orders", icon: <ShoppingOutlined />, label: "Đơn hàng của tôi" },
     { key: "settings", icon: <SettingOutlined />, label: "Cài đặt" },
-    ...(user?.role === "admin"
+    ...(user?.vaiTro === "admin"
       ? [{ key: "admin", icon: <SettingOutlined />, label: "Quản trị Admin" }]
       : []),
     { type: "divider" as const },
@@ -152,10 +145,14 @@ const AppHeader: React.FC = () => {
                   <Button
                     type="text"
                     icon={<BellOutlined className="text-lg" />}
-                    onClick={() => {
-                      setHasNewUpdate(false);
-                      navigate("/order-tracking");
-                    }}
+                     onClick={() => {
+                       if (user) {
+                         const userOrders = orders.filter((o) => o.customerEmail === user.email);
+                         setSeenOrderCount(userOrders.length);
+                       }
+                       navigate("/order-tracking");
+                     }}
+
                     className="!w-10 !h-10 hover:!bg-gray-100"
                   />
                 </Badge>
@@ -174,14 +171,14 @@ const AppHeader: React.FC = () => {
                     <Avatar
                       size={32}
                       style={{
-                        background: user?.role === "admin"
+                        background: user?.vaiTro === "admin"
                           ? "linear-gradient(135deg, #c9a96e, #d4af37)"
                           : `hsl(${(user?.id || 0) * 60 % 360}, 60%, 60%)`,
                         fontSize: 14,
                         fontWeight: 700,
                       }}
                     >
-                      {user?.name?.charAt(0)?.toUpperCase()}
+                      {user?.ten?.charAt(0)?.toUpperCase()}
                     </Avatar>
                   </div>
                 </Dropdown>
@@ -232,10 +229,10 @@ const AppHeader: React.FC = () => {
                 fontWeight: 700,
               }}
             >
-              {user?.name?.charAt(0)?.toUpperCase()}
+              {user?.ten?.charAt(0)?.toUpperCase()}
             </Avatar>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1a2e" }}>{user?.name}</div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1a2e" }}>{user?.ten}</div>
               <div style={{ fontSize: 12, color: "#999" }}>{user?.email}</div>
             </div>
           </div>

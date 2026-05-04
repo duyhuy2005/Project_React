@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Input,
   Button,
@@ -39,11 +39,17 @@ const statusStepMap: Record<OrderStatus, number> = {
 const OrderTrackingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuthStore();
-  const { getOrdersByEmail, cancelOrder } = useOrderStore();
+  const { orders, loading, fetchMyOrders, getOrdersByEmail, cancelOrder } = useOrderStore();
   const [searchOrderId, setSearchOrderId] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const userOrders = isLoggedIn && user ? getOrdersByEmail(user.email) : [];
+  useEffect(() => {
+    if (isLoggedIn) {
+      void fetchMyOrders();
+    }
+  }, [fetchMyOrders, isLoggedIn]);
+
+  const userOrders = isLoggedIn && user ? getOrdersByEmail(user.email) : orders;
 
   const handleSearch = () => {
     if (!searchOrderId.trim()) {
@@ -65,10 +71,11 @@ const OrderTrackingPage: React.FC = () => {
       okText: "Xác nhận hủy",
       cancelText: "Không",
       okButtonProps: { danger: true },
-      onOk: () => {
-        cancelOrder(orderId);
-        message.success("Đã hủy đơn hàng thành công!");
-      },
+        onOk: async () => {
+          await cancelOrder(orderId);
+          message.success("Đã hủy đơn hàng thành công!");
+        },
+
     });
   };
 
@@ -188,7 +195,7 @@ const OrderTrackingPage: React.FC = () => {
             <Button
               type="primary" size="small"
               icon={<RollbackOutlined />}
-              onClick={() => navigate(`/returns?orderId=${order.id}`)}
+              onClick={() => navigate(`/return-request?orderId=${order.id}`)}
               className="!rounded-full !bg-gradient-to-r !from-accent !to-accent-dark !border-none"
             >
               Yêu cầu hoàn trả
@@ -242,8 +249,11 @@ const OrderTrackingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Order list */}
-      {userOrders.length === 0 ? (
+       {/* Order list */}
+      {loading ? (
+        <Card className="!rounded-2xl !shadow-sm !border-gray-100">Đang tải đơn hàng...</Card>
+      ) : userOrders.length === 0 ? (
+
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={

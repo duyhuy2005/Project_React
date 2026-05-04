@@ -45,49 +45,71 @@ export interface ValidateCouponResponse {
   };
 }
 
+const toNumberId = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const numeric = Number(value.replace(/\D/g, ''));
+    return Number.isNaN(numeric) ? 0 : numeric;
+  }
+  return 0;
+};
+
+const normalizeCoupon = (item: Record<string, unknown>): Coupon => ({
+  id: toNumberId(item.id ?? item._id),
+  maCode: (item.maCode as string | undefined) ?? (item.code as string | undefined) ?? '',
+  giamGia: Number((item.giamGia as number | undefined) ?? (item.discount as number | undefined) ?? 0),
+  loaiGiamGia: (item.loaiGiamGia as string | undefined) ?? (item.discountType as string | undefined) ?? 'fixed',
+  donHangToiThieu: Number((item.donHangToiThieu as number | undefined) ?? (item.minOrderAmount as number | undefined) ?? 0),
+  giamGiaToiDa: (item.giamGiaToiDa as number | undefined) ?? (item.maxDiscount as number | undefined),
+  gioiHanSuDung: (item.gioiHanSuDung as number | undefined) ?? (item.usageLimit as number | undefined),
+  soLanDaSuDung: Number((item.soLanDaSuDung as number | undefined) ?? (item.usedCount as number | undefined) ?? 0),
+  ngayHetHan: (item.ngayHetHan as string | undefined) ?? (item.expiryDate as string | undefined),
+  hoatDong: Boolean((item.hoatDong as boolean | undefined) ?? (item.isActive as boolean | undefined)),
+  nguoiTaoId: toNumberId(item.nguoiTaoId ?? item.createdBy),
+  ngayTao: (item.ngayTao as string | undefined) ?? (item.createdAt as string | undefined) ?? new Date().toISOString(),
+  ngayCapNhat: (item.ngayCapNhat as string | undefined) ?? (item.updatedAt as string | undefined) ?? new Date().toISOString(),
+});
+
 const couponService = {
-  // Lấy danh sách mã giảm giá (Admin)
   getAll: async (): Promise<Coupon[]> => {
     const response = await api.get('/coupons');
-    return response.data.data;
+    const coupons = ((response.data.data as Record<string, unknown> | undefined)?.coupons as Record<string, unknown>[] | undefined) ?? [];
+    return coupons.map(normalizeCoupon);
   },
 
-  // Lấy chi tiết mã giảm giá (Admin)
   getById: async (id: number): Promise<Coupon> => {
     const response = await api.get(`/coupons/${id}`);
-    return response.data.data;
+    const coupon = ((response.data.data as Record<string, unknown> | undefined)?.coupon as Record<string, unknown> | undefined) ?? {};
+    return normalizeCoupon(coupon);
   },
 
-  // Lấy mã giảm giá theo code
   getByCode: async (code: string): Promise<Coupon> => {
     const response = await api.get(`/coupons/code/${code}`);
-    return response.data.data;
+    const coupon = ((response.data.data as Record<string, unknown> | undefined)?.coupon as Record<string, unknown> | undefined) ?? {};
+    return normalizeCoupon(coupon);
   },
 
-  // Validate mã giảm giá
   validate: async (data: ValidateCouponRequest): Promise<ValidateCouponResponse> => {
     const response = await api.post('/coupons/validate', data);
     return response.data;
   },
 
-  // Tạo mã giảm giá mới (Admin)
   create: async (data: CreateCouponRequest): Promise<Coupon> => {
     const response = await api.post('/coupons', data);
-    return response.data.data;
+    const coupon = ((response.data.data as Record<string, unknown> | undefined)?.coupon as Record<string, unknown> | undefined) ?? {};
+    return normalizeCoupon(coupon);
   },
 
-  // Cập nhật mã giảm giá (Admin)
   update: async (id: number, data: Coupon): Promise<Coupon> => {
     const response = await api.put(`/coupons/${id}`, data);
-    return response.data.data;
+    const coupon = ((response.data.data as Record<string, unknown> | undefined)?.coupon as Record<string, unknown> | undefined) ?? {};
+    return normalizeCoupon(coupon);
   },
 
-  // Xóa mã giảm giá (Admin)
   delete: async (id: number): Promise<void> => {
     await api.delete(`/coupons/${id}`);
   },
 
-  // Vô hiệu hóa mã giảm giá (Admin)
   deactivate: async (id: number): Promise<void> => {
     await api.patch(`/coupons/${id}/deactivate`);
   },

@@ -1,5 +1,5 @@
-import React from "react";
-import { Button, Row, Col, Tag } from "antd";
+import React, { useEffect } from "react";
+import { Button, Row, Col, Tag, Spin } from "antd";
 import {
   RightOutlined,
   SafetyCertificateOutlined,
@@ -12,21 +12,48 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useProductStore } from "../stores/productStore";
 import ProductCard from "../components/product/ProductCard";
+import { categories } from "../data/products";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const products = useProductStore((state) => state.products);
+  const { products, loading, fetchProducts } = useProductStore();
+  
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
   const featuredProducts = products.filter((p) => p.isBestSeller || p.isNew).slice(0, 8);
   const newProducts = products.filter((p) => p.isNew).slice(0, 8);
+  const featuredDisplayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8);
+  const newDisplayProducts = newProducts.length > 0 ? newProducts : products.slice(0, 8);
 
   const getCategoryCount = (cat: string) => products.filter(p => p.category === cat).length;
 
-  const categoryData = [
-    { title: "Cao cấp", emoji: "💎", gradient: "from-[#2c1810] via-[#4a2c1a] to-[#6b3a1a]", cat: "luxury" },
-    { title: "Thể thao", emoji: "⚡", gradient: "from-[#0a1628] via-[#132d5e] to-[#1a3a7a]", cat: "sport" },
-    { title: "Cổ điển", emoji: "🎩", gradient: "from-[#1a1a2e] via-[#2d2d44] to-[#3a3a55]", cat: "classic" },
-    { title: "Casual", emoji: "😎", gradient: "from-[#0a2618] via-[#1a4a30] to-[#2a6a45]", cat: "casual" },
-  ];
+  const categoryData = categories
+    .filter((category: (typeof categories)[number]) => category.key !== "all")
+    .slice(0, 4)
+    .map((category: (typeof categories)[number], index: number) => {
+      const gradients = [
+        "from-[#1a1a2e] via-[#2d2d44] to-[#3a3a55]",
+        "from-[#0a1628] via-[#132d5e] to-[#1a3a7a]",
+        "from-[#0a2618] via-[#1a4a30] to-[#2a6a45]",
+        "from-[#2c1810] via-[#4a2c1a] to-[#6b3a1a]",
+      ];
+      return {
+        title: category.label,
+        emoji: category.icon,
+        gradient: gradients[index % gradients.length],
+        cat: category.key,
+      };
+    });
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <Spin size="large" tip="Đang tải sản phẩm..." />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full overflow-hidden homepage-content" style={{ background: '#faf9f6' }}>
@@ -150,7 +177,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <Row gutter={[24, 24]}>
-            {categoryData.map((cat, index) => (
+            {categoryData.map((cat: (typeof categoryData)[number], index: number) => (
               <Col key={index} xs={24} sm={12} lg={6}>
                 <div
                   className={`category-card bg-gradient-to-br ${cat.gradient} p-8 text-white text-center h-64 flex flex-col items-center justify-center`}
@@ -193,7 +220,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <Row gutter={[24, 24]}>
-            {featuredProducts.map((product) => (
+            {featuredDisplayProducts.map((product) => (
               <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                 <ProductCard product={product} />
               </Col>
@@ -227,7 +254,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <Row gutter={[24, 24]}>
-            {newProducts.map((product) => (
+            {newDisplayProducts.map((product) => (
               <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                 <ProductCard product={product} />
               </Col>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { notification } from 'antd';
 import { useProductStore } from '../../stores/productStore';
 import type { Product } from '../../data/products';
@@ -7,13 +7,11 @@ let lastProductCount = 0;
 
 const NewProductNotification = () => {
   const products = useProductStore((state) => state.products);
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     // Initialize on first load
-    if (!initialized) {
+    if (lastProductCount === 0) {
       lastProductCount = products.length;
-      setInitialized(true);
       return;
     }
 
@@ -60,7 +58,7 @@ const NewProductNotification = () => {
       // Product was deleted
       lastProductCount = products.length;
     }
-  }, [products, initialized]);
+  }, [products]);
 
   return null;
 };

@@ -1,4 +1,4 @@
-import { Card, Row, Col, Statistic, DatePicker, Button, Space } from "antd";
+import { Card, Row, Col, DatePicker, Button, Space } from "antd";
 import { DownloadOutlined, LineChartOutlined, BarChartOutlined, PieChartOutlined } from "@ant-design/icons";
 import "./AdminStyles.css";
 

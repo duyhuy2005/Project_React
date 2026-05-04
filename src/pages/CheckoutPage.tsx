@@ -32,7 +32,7 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCartStore();
   const { user, isLoggedIn } = useAuthStore();
-  const placeOrder = useOrderStore((state) => state.placeOrder);
+  const createOrder = useOrderStore((state) => state.createOrder);
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
@@ -92,23 +92,17 @@ const CheckoutPage: React.FC = () => {
       const values = await form.validateFields();
       setIsSubmitting(true);
 
-      // Simulate processing delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const order = placeOrder({
-        customerName: values.name,
-        customerEmail: values.email,
-        customerPhone: values.phone,
-        address: values.address,
+      const order = await createOrder({
+        tenKhachHang: values.name,
+        emailKhachHang: values.email,
+        soDienThoaiKhachHang: values.phone,
+        diaChiGiaoHang: values.address,
         items: items.map((item) => ({
-          product: item.product,
-          quantity: item.quantity,
-          price: item.product.price,
+          sanPhamId: item.product.id,
+          soLuong: item.quantity,
         })),
-        totalAmount: grandTotal,
-        shippingFee,
-        paymentMethod,
-        note: values.note,
+        phuongThucThanhToan: paymentMethod,
+        ghiChu: values.note,
       });
 
       setPlacedOrderId(order.id);
@@ -164,9 +158,9 @@ const CheckoutPage: React.FC = () => {
             form={form}
             layout="vertical"
             initialValues={{
-              name: user?.name || "",
+              name: user?.ten || "",
               email: user?.email || "",
-              phone: user?.phone || "",
+              phone: user?.soDienThoai || "",
             }}
           >
             {/* Step 1: Shipping Info */}
