@@ -5,6 +5,7 @@ import type {
   Product as APIProduct,
   UpdateProductRequest,
 } from '../services/productService';
+import { pickBoolean, pickNumber, pickString, normalizeCategorySlug } from '../utils/normalizeApi';
 
 // Legacy Product interface for components
 export interface Product {
@@ -43,26 +44,28 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
 
 // Convert API Product to Legacy Product
 function convertToLegacy(apiProduct: APIProduct): Product {
+  const specs = (apiProduct as unknown as { specs?: Record<string, string> }).specs;
+  const originalPrice = pickNumber(apiProduct as unknown as Record<string, unknown>, ['giaGoc', 'originalPrice']);
   return {
     id: apiProduct.id,
-    name: apiProduct.ten || (apiProduct as unknown as { name?: string }).name || '',
-    brand: apiProduct.thuongHieu || (apiProduct as unknown as { brand?: string }).brand || '',
-    price: apiProduct.gia || (apiProduct as unknown as { price?: number }).price || 0,
-    originalPrice: apiProduct.giaGoc || (apiProduct as unknown as { originalPrice?: number }).originalPrice,
-    image: apiProduct.hinhAnh || (apiProduct as unknown as { image?: string }).image || '/images/watch1.png',
-    category: apiProduct.danhMuc || (apiProduct as unknown as { category?: string }).category || '',
-    description: apiProduct.moTa || (apiProduct as unknown as { description?: string }).description || '',
-    rating: apiProduct.danhGia || (apiProduct as unknown as { rating?: number }).rating || 0,
-    reviews: apiProduct.soDanhGia || (apiProduct as unknown as { reviews?: number }).reviews || 0,
-    isNew: apiProduct.sanPhamMoi ?? (apiProduct as unknown as { isNew?: boolean }).isNew,
-    isBestSeller: apiProduct.banChay ?? (apiProduct as unknown as { isBestSeller?: boolean }).isBestSeller,
+    name: pickString(apiProduct as unknown as Record<string, unknown>, ['ten', 'name']),
+    brand: pickString(apiProduct as unknown as Record<string, unknown>, ['thuongHieu', 'brand']),
+    price: pickNumber(apiProduct as unknown as Record<string, unknown>, ['gia', 'price']),
+    originalPrice: originalPrice > 0 ? originalPrice : undefined,
+    image: pickString(apiProduct as unknown as Record<string, unknown>, ['hinhAnh', 'image'], '/images/watch1.png'),
+    category: normalizeCategorySlug(pickString(apiProduct as unknown as Record<string, unknown>, ['danhMuc', 'category', 'rawCategory'])),
+    description: pickString(apiProduct as unknown as Record<string, unknown>, ['moTa', 'description']),
+    rating: pickNumber(apiProduct as unknown as Record<string, unknown>, ['danhGia', 'rating']),
+    reviews: pickNumber(apiProduct as unknown as Record<string, unknown>, ['soDanhGia', 'reviews']),
+    isNew: pickBoolean(apiProduct as unknown as Record<string, unknown>, ['sanPhamMoi', 'isNew']),
+    isBestSeller: pickBoolean(apiProduct as unknown as Record<string, unknown>, ['banChay', 'isBestSeller']),
     specs: {
-      movement: apiProduct.boMay || (apiProduct as unknown as { specs?: { movement?: string } }).specs?.movement || '',
-      caseMaterial: apiProduct.chatLieuVo || (apiProduct as unknown as { specs?: { caseMaterial?: string } }).specs?.caseMaterial || '',
-      caseSize: apiProduct.kichThuocVo || (apiProduct as unknown as { specs?: { caseSize?: string } }).specs?.caseSize || '',
-      waterResistance: apiProduct.chongNuoc || (apiProduct as unknown as { specs?: { waterResistance?: string } }).specs?.waterResistance || '',
-      crystal: apiProduct.matKinh || (apiProduct as unknown as { specs?: { crystal?: string } }).specs?.crystal || '',
-      strap: apiProduct.dayDeo || (apiProduct as unknown as { specs?: { strap?: string } }).specs?.strap || '',
+      movement: pickString(apiProduct as unknown as Record<string, unknown>, ['boMay']) || specs?.movement || '',
+      caseMaterial: pickString(apiProduct as unknown as Record<string, unknown>, ['chatLieuVo']) || specs?.caseMaterial || '',
+      caseSize: pickString(apiProduct as unknown as Record<string, unknown>, ['kichThuocVo']) || specs?.caseSize || '',
+      waterResistance: pickString(apiProduct as unknown as Record<string, unknown>, ['chongNuoc']) || specs?.waterResistance || '',
+      crystal: pickString(apiProduct as unknown as Record<string, unknown>, ['matKinh']) || specs?.crystal || '',
+      strap: pickString(apiProduct as unknown as Record<string, unknown>, ['dayDeo']) || specs?.strap || '',
     },
   };
 }
@@ -92,6 +95,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
   error: null,
 
   fetchProducts: async (params) => {
+    if (get().loading) return;
     set({ loading: true, error: null });
     try {
       const apiProducts = await productService.getAll(params);
@@ -107,10 +111,12 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
   getProductById: async (id: number) => {
     try {
+      set({ loading: true, error: null });
       const apiProduct = await productService.getById(id);
+      set({ loading: false });
       return convertToLegacy(apiProduct);
     } catch (error: unknown) {
-      set({ error: getErrorMessage(error, 'Không tìm thấy sản phẩm') });
+      set({ error: getErrorMessage(error, 'Không tìm thấy sản phẩm'), loading: false });
       return null;
     }
   },
