@@ -33,6 +33,7 @@ const ProductDetailPage: React.FC = () => {
   const products = useProductStore((state) => state.products);
   const loading = useProductStore((state) => state.loading);
   const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const getProductById = useProductStore((state) => state.getProductById);
   const addToCart = useCartStore((state) => state.addToCart);
   const [quantity, setQuantity] = useState(1);
 
@@ -41,6 +42,15 @@ const ProductDetailPage: React.FC = () => {
       void fetchProducts();
     }
   }, [fetchProducts, products.length]);
+
+  useEffect(() => {
+    const currentId = Number(id);
+    if (!currentId || products.some((p) => p.id === currentId)) {
+      return;
+    }
+
+    void getProductById(currentId);
+  }, [getProductById, id, products]);
 
   const product = products.find((p) => p.id === Number(id));
 
