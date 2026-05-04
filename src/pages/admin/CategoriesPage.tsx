@@ -7,6 +7,7 @@ import "./AdminStyles.css";
 
 const CategoriesPage = () => {
   const categories = useCategoryStore((state) => state.categories);
+  const loading = useCategoryStore((state) => state.loading);
   const fetchCategories = useCategoryStore((state) => state.fetchCategories);
   const createCategory = useCategoryStore((state) => state.createCategory);
   const updateCategory = useCategoryStore((state) => state.updateCategory);
@@ -111,7 +112,13 @@ const CategoriesPage = () => {
           </Button>
         </div>
 
-        <Table columns={columns} dataSource={categories} rowKey="id" />
+        <Table
+          columns={columns}
+          dataSource={categories}
+          rowKey="id"
+          loading={loading}
+          locale={{ emptyText: loading ? 'Đang tải danh mục...' : 'Chưa có danh mục nào' }}
+        />
       </div>
 
       <Modal
