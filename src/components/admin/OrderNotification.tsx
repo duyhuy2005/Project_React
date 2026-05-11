@@ -6,14 +6,13 @@ import { formatPrice } from '../../data/products';
 
 export const OrderNotification = () => {
   const orders = useOrderStore((state) => state.orders);
-  const prevOrderCountRef = useRef(orders.length);
+  const prevOrderIdsRef = useRef<string[]>(orders.map((order) => order.backendId));
 
   useEffect(() => {
-    // Chỉ hiển thị notification khi có đơn hàng mới (không phải lần đầu load)
-    if (prevOrderCountRef.current > 0 && orders.length > prevOrderCountRef.current) {
-      const newOrder = orders[0]; // Đơn hàng mới nhất
-      
-      if (newOrder.status === 'new') {
+    const prevIds = new Set(prevOrderIdsRef.current);
+    const newOrder = orders.find((order) => !prevIds.has(order.backendId) && order.status === 'new');
+
+    if (newOrder) {
         notification.success({
           message: '🎉 Đơn hàng mới!',
           description: (
@@ -37,10 +36,9 @@ export const OrderNotification = () => {
             border: '2px solid #b7eb8f',
           },
         });
-      }
     }
-    
-    prevOrderCountRef.current = orders.length;
+
+    prevOrderIdsRef.current = orders.map((order) => order.backendId);
   }, [orders]);
 
   return null;

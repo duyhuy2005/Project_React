@@ -74,6 +74,24 @@ const AdminLayout = () => {
       fetchCategories(),
       fetchCoupons(),
     ]);
+
+    const syncOrders = () => {
+      void fetchOrders();
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "chronos:last-order-created") {
+        syncOrders();
+      }
+    };
+
+    const intervalId = window.setInterval(syncOrders, 15000);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, [fetchCategories, fetchCoupons, fetchOrders, fetchProducts, fetchReturns, fetchUsers]);
 
   const menuItems: MenuProps["items"] = [

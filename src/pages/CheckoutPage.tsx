@@ -106,6 +106,10 @@ const CheckoutPage: React.FC = () => {
       });
 
       setPlacedOrderId(order.id);
+      localStorage.setItem(
+        "chronos:last-order-created",
+        JSON.stringify({ id: order.id, createdAt: new Date().toISOString() })
+      );
       clearCart();
       message.success("Đặt hàng thành công!");
     } catch {
