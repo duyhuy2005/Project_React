@@ -16,9 +16,14 @@ const AdminLoginPage = () => {
         email: values.username,
         password: values.password,
       });
-      localStorage.setItem("admin_logged_in", "true");
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser?.vaiTro === "admin") {
+        localStorage.setItem("admin_logged_in", "true");
+      } else {
+        localStorage.removeItem("admin_logged_in");
+      }
       message.success("Đăng nhập Admin thành công!");
-      navigate("/admin");
+      navigate(currentUser?.vaiTro === "admin" ? "/admin" : "/");
     } catch {
       message.error("Tài khoản hoặc mật khẩu không đúng!");
     } finally {

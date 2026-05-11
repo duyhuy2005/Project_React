@@ -4,6 +4,7 @@ import { ConfigProvider, Spin } from "antd";
 import viVN from "antd/locale/vi_VN";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
+import { AdminOnlyRoute, GuestOnlyRoute } from "./components/auth/RouteGuards";
 import "./App.css";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -65,11 +66,31 @@ function App() {
             </Route>
 
             {/* Auth Pages */}
-            <Route path="/login" element={<CustomerAuthPage />} />
-            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route
+              path="/login"
+              element={
+                <GuestOnlyRoute>
+                  <CustomerAuthPage />
+                </GuestOnlyRoute>
+              }
+            />
+            <Route
+              path="/admin/login"
+              element={
+                <GuestOnlyRoute>
+                  <AdminLoginPage />
+                </GuestOnlyRoute>
+              }
+            />
 
             {/* Admin Routes */}
-            <Route element={<AdminLayout />}>
+            <Route
+              element={
+                <AdminOnlyRoute>
+                  <AdminLayout />
+                </AdminOnlyRoute>
+              }
+            >
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
@@ -92,4 +113,3 @@ function App() {
 }
 
 export default App;
-

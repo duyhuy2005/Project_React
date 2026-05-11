@@ -71,6 +71,8 @@ export const useAuthStore = create<AuthState>()(
             localStorage.setItem("chronos_user", JSON.stringify(response.user));
             if (response.user.vaiTro === 'admin') {
               localStorage.setItem("admin_logged_in", "true");
+            } else {
+              localStorage.removeItem("admin_logged_in");
             }
           }
         } catch (error: unknown) {
@@ -101,6 +103,7 @@ export const useAuthStore = create<AuthState>()(
             });
             
             localStorage.setItem("chronos_user", JSON.stringify(response.user));
+            localStorage.removeItem("admin_logged_in");
           }
         } catch (error: unknown) {
           set({

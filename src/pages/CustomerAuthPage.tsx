@@ -34,13 +34,14 @@ const CustomerAuthPage = () => {
         email: values.email,
         password: values.password,
       });
+      const currentUser = useAuthStore.getState().user;
       loginForm.resetFields();
       message.success({
         content: "Đăng nhập thành công! Chào mừng bạn đến CHRONOS 🎉",
         duration: 3,
         style: { marginTop: '20vh' }
       });
-      navigate("/");
+      navigate(currentUser?.vaiTro === "admin" ? "/admin" : "/");
     } catch {
       message.error("Đăng nhập thất bại. Kiểm tra lại email hoặc mật khẩu.");
     } finally {
@@ -57,13 +58,14 @@ const CustomerAuthPage = () => {
         phone: values.phone,
         password: values.password,
       });
+      const currentUser = useAuthStore.getState().user;
       registerForm.resetFields();
       message.success({
         content: "Đăng ký thành công! Chào mừng bạn đến CHRONOS 🎉",
         duration: 3,
         style: { marginTop: '20vh' }
       });
-      navigate("/");
+      navigate(currentUser?.vaiTro === "admin" ? "/admin" : "/");
     } catch {
       message.error("Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
